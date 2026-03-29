@@ -59,7 +59,7 @@ const app = {
 
     showMainLayout() {
         document.getElementById('navbar').classList.remove('hidden');
-        this.renderNav();
+        this.renderSidebar();
         
         if (this.user.role === 'Admin') {
             this.showView('admin-view');
@@ -83,12 +83,41 @@ const app = {
         this.startFromOne = pref;
     },
 
-    renderNav() {
-        const navLinks = document.getElementById('nav-links');
-        navLinks.innerHTML = `
-            <li><span style="color:var(--primary)">${this.user.username} (${this.user.role})</span></li>
-            <li><a onclick="app.logout()">Logout</a></li>
-        `;
+    toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('active');
+        document.getElementById('sidebar-overlay').classList.toggle('active');
+    },
+
+    renderSidebar() {
+        const sidebarLinks = document.getElementById('sidebar-links');
+        const userInfo = document.getElementById('nav-user-info');
+        
+        userInfo.innerHTML = `<span style="color:var(--primary)">${this.user.username}</span>`;
+        
+        let links = '';
+        if (this.user.role === 'Admin') {
+            links = `
+                <li onclick="app.showView('admin-view'); app.toggleSidebar()">Admin Dashboard</li>
+                <li onclick="app.showModal('create-user-modal'); app.toggleSidebar()">Add Staff/User</li>
+                <li onclick="app.refreshPasswords(); app.toggleSidebar()">Refresh Passwords</li>
+                <li onclick="app.deleteUnusedTokens(); app.toggleSidebar()">Clear Unused Tokens</li>
+                <li onclick="app.logout()">Logout</li>
+            `;
+        } else if (this.user.role.startsWith('Staff')) {
+            links = `
+                <li onclick="app.switchStaffMode('generate'); app.toggleSidebar()">Generate Tokens</li>
+                <li onclick="app.switchStaffMode('scan'); app.toggleSidebar()">Scan & Fill Data</li>
+                <li onclick="app.switchStaffMode('deliver'); app.toggleSidebar()">Scan & Deliver</li>
+                <li onclick="app.deleteUnusedTokens(); app.toggleSidebar()">Clear Unused Tokens</li>
+                <li onclick="app.logout()">Logout</li>
+            `;
+        } else if (this.user.role === 'Delivery') {
+            links = `
+                <li onclick="app.showView('delivery-view'); app.toggleSidebar()">Delivery Panel</li>
+                <li onclick="app.logout()">Logout</li>
+            `;
+        }
+        sidebarLinks.innerHTML = links;
     },
 
     showView(viewId) {

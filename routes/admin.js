@@ -256,4 +256,36 @@ router.post('/users/refresh-passwords', async (req, res) => {
     }
 });
 
+// Process update request
+router.put('/tokens/:id/process-update', protect, authorize('Admin'), async (req, res) => {
+    try {
+        const { action } = req.body; // 'approve', 'reject'
+        const token = await Token.findById(req.params.id);
+        if (!token) return res.status(404).json({ success: false, message: 'Token not found' });
+
+        if (action === 'approve') {
+            const up = token.pendingUpdate;
+            if (up) {
+                token.consumerName = up.consumerName;
+                token.contactNo = up.contactNo;
+                token.consumerNo = up.consumerNo;
+                token.dacNumber = up.dacNumber;
+                token.expectedDeliveryDate = up.expectedDeliveryDate;
+                token.nextDueDays = up.nextDueDays;
+            }
+            token.status = 'PENDING';
+        } else {
+            token.status = 'PENDING';
+        }
+
+        token.pendingUpdate = undefined;
+        token.updateRequestedBy = undefined;
+        await token.save();
+
+        res.status(200).json({ success: true, message: `Update ${action}ed successfully` });
+    } catch(err) {
+        res.status(500).json({ success: false, message: 'Failed to process update' });
+    }
+});
+
 module.exports = router;

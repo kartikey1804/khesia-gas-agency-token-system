@@ -162,4 +162,22 @@ router.delete('/unused', protect, authorize('Admin', 'Staff'), async (req, res) 
     }
 });
 
+// Request update for filled token
+router.post('/:id/request-update', protect, authorize('Staff', 'Admin'), async (req, res) => {
+    try {
+        const token = await Token.findById(req.params.id);
+        if (!token) return res.status(404).json({ success: false, message: 'Token not found' });
+        if (token.status === 'UPDATE_PENDING') return res.status(400).json({ success: false, message: 'Update already pending' });
+
+        token.pendingUpdate = req.body;
+        token.updateRequestedBy = req.user._id;
+        token.status = 'UPDATE_PENDING';
+        await token.save();
+
+        res.status(200).json({ success: true, message: 'Update request submitted to Admin' });
+    } catch(err) {
+        res.status(500).json({ success: false, message: 'Failed to submit request' });
+    }
+});
+
 module.exports = router;

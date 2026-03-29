@@ -13,11 +13,83 @@
 </head>
 <body>
     <nav id="navbar" class="glass-nav hidden">
-        <div class="logo">KHESIA INDANE</div>
-        <ul id="nav-links">
-            <!-- Nav links injected by JS -->
-        </ul>
+        <div class="nav-left">
+            <button id="sidebar-toggle" class="hamburger-btn" onclick="app.toggleSidebar()">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="logo">KHESIA INDANE</div>
+        </div>
+        <div id="nav-user-info" class="nav-right"></div>
     </nav>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">KHESIA INDANE</div>
+            <button class="close-sidebar" onclick="app.toggleSidebar()">&times;</button>
+        </div>
+        <ul id="sidebar-links" class="sidebar-links"></ul>
+        <div class="sidebar-footer">
+            <button onclick="app.logout()" class="btn-logout">Logout</button>
+        </div>
+    </aside>
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="app.toggleSidebar()"></div>
+
+    <!-- Modals -->
+    <div id="edit-request-modal" class="modal hidden">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h2>Request Data Change</h2>
+                <span class="close" onclick="app.closeModal()">&times;</span>
+            </div>
+            <form id="edit-request-form">
+                <input type="hidden" id="edit-req-id">
+                <div class="form-group">
+                    <label>Consumer Name</label>
+                    <input type="text" id="edit-req-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Contact No</label>
+                    <input type="text" id="edit-req-contact" required>
+                </div>
+                <div class="form-group">
+                    <label>Consumer No</label>
+                    <input type="text" id="edit-req-consumer-no" required>
+                </div>
+                <div class="form-group">
+                    <label>DAC Number</label>
+                    <input type="text" id="edit-req-dac" required>
+                </div>
+                <div class="form-group">
+                    <label>Expected Delivery Date</label>
+                    <input type="date" id="edit-req-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Next Due Days</label>
+                    <select id="edit-req-due">
+                        <option value="25">25 Days</option>
+                        <option value="35">35 Days</option>
+                        <option value="45">45 Days</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%">Submit Request</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="review-update-modal" class="modal hidden">
+        <div class="modal-content glass" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Review Change Request</h2>
+                <span class="close" onclick="app.closeModal()">&times;</span>
+            </div>
+            <div id="review-diff-container"></div>
+            <div class="modal-footer" style="display:flex; gap:10px; margin-top:20px;">
+                <button id="btn-approve-update" class="btn-success" style="flex:1">Approve</button>
+                <button id="btn-reject-update" class="btn-danger" style="flex:1">Reject</button>
+            </div>
+        </div>
+    </div>
 
     <div id="toast-container"></div>
 

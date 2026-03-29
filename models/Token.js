@@ -10,12 +10,22 @@ const tokenSchema = new mongoose.Schema({
   consumerNo: { type: String },
   expectedDeliveryDate: { type: Date },
   nextDueDays: { type: Number, enum: [25, 35, 45] },
-  status: { type: String, enum: ['GENERATED', 'PENDING', 'DELIVERED', 'PENDING_APPROVAL'], default: 'GENERATED' },
+  status: { type: String, enum: ['GENERATED', 'PENDING', 'DELIVERED', 'PENDING_APPROVAL', 'UPDATE_PENDING'], default: 'GENERATED' },
   deliveryTimestamp: { type: Date },
   deliveryBoyName: { type: String },
   adminApproved: { type: Boolean, default: false },
   adminApprovalReason: { type: String },
+  pendingUpdate: {
+    consumerName: String,
+    contactNo: String,
+    consumerNo: String,
+    dacNumber: String,
+    expectedDeliveryDate: Date,
+    nextDueDays: Number
+  },
+  updateRequestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   lockedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+
   lockedAt: { type: Date },
   generatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
