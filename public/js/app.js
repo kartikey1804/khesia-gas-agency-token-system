@@ -312,12 +312,21 @@ const app = {
         tokens.forEach(t => {
             printArea.innerHTML += `
                 <div class="token-print-card">
-                    <h1>KHESIA INDANE</h1>
-                    <h3>Token #${t.serialNo}</h3>
-                    <img src="${t.qrImage}" alt="QR">
-                    <p>ID: ${t.tokenId}</p>
-                    <div style="margin-top:2mm; border-top:1px dashed #ccc; padding-top:1mm;">
-                        <span style="font-size:7pt">Sign: __________</span>
+                    <div class="token-header">KHESIA INDANE</div>
+                    <div class="token-body">
+                        <div class="token-info">
+                            <h3>Token #${t.serialNo}</h3>
+                            <p>ID: ${t.tokenId}</p>
+                            <p style="font-size:8pt; margin-top:5mm;">Status: VALID</p>
+                        </div>
+                        <img src="${t.qrImage}" class="token-qr" alt="QR">
+                    </div>
+                    <div class="token-footer">
+                        <div class="stamp-box">STAMP</div>
+                        <div class="signature-area">
+                            <div></div>
+                            <span>Signature</span>
+                        </div>
                     </div>
                 </div>
             `;

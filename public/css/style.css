@@ -267,34 +267,80 @@ button {
 .print-only { display: none; }
 
 @media print {
-    @page { size: A4 portrait; margin: 10mm; }
+    @page { size: A4 portrait; margin: 0; }
     .no-print { display: none !important; }
-    .print-only { display: block; }
-    
-    body { background: white; color: black; }
     
     #print-area {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5mm;
-        width: 100%;
+        display: grid !important;
+        grid-template-columns: 10.5cm 10.5cm !important;
+        grid-template-rows: 9.9cm 9.9cm 9.9cm !important;
+        width: 21cm !important;
+        height: 29.7cm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white;
     }
-    
+
     .token-print-card {
-        border: 1px dashed #000;
+        width: 10.5cm;
+        height: 9.9cm;
+        border: 0.5px solid #000;
         padding: 5mm;
+        box-sizing: border-box;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        text-align: center;
-        page-break-inside: avoid;
-        width: 15%; /* Compact fit for 6 horizontally */
-        font-size: 8pt;
+        justify-content: space-between;
+        background: white !important;
+        position: relative;
     }
-    
-    .token-print-card h1 { font-size: 14px; margin-bottom: 2px; }
-    .token-print-card h3 { font-size: 10px; margin-bottom: 5px; }
-    .token-print-card img { width: 100%; height: auto; margin-bottom: 5px; }
+
+    .token-header {
+        text-align: center;
+        font-size: 14pt;
+        font-weight: bold;
+        border-bottom: 2px solid #000;
+        padding-bottom: 2mm;
+    }
+
+    .token-body {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-grow: 1;
+    }
+
+    .token-info h3 { font-size: 16pt; margin: 0; }
+    .token-info p { font-size: 10pt; margin: 2mm 0; }
+
+    .token-qr { width: 3.5cm; height: 3.5cm; }
+
+    .token-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+    .stamp-box {
+        width: 2.5cm;
+        height: 2.5cm;
+        border: 1px solid #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8pt;
+        color: #000;
+    }
+
+    .signature-area {
+        text-align: right;
+        font-size: 10pt;
+    }
+
+    .signature-area div {
+        border-top: 1px solid #000;
+        width: 4cm;
+        margin-top: 5mm;
+    }
 }
 
 /** Success Animation **/
