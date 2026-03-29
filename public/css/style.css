@@ -573,6 +573,8 @@ button {
         padding: 0 !important;
         width: 21cm !important;
         background: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 
     .print-page {
@@ -594,6 +596,8 @@ button {
         height: 29.7cm;
         page-break-after: always;
         background: white;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 
     .token-print-card {
@@ -608,6 +612,8 @@ button {
         background: white !important;
         position: relative;
         overflow: hidden;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 
     .token-print-header {

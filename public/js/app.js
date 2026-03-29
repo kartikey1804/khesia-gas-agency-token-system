@@ -688,7 +688,10 @@ const app = {
             printArea.appendChild(pageDiv);
         }
         
-        window.print();
+        // Short delay to ensure Data URLs (QR Codes) are fully rendered by the browser
+        setTimeout(() => {
+            window.print();
+        }, 500);
     },
 
     async handleStaffFill(e) {
