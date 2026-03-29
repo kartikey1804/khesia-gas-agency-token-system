@@ -1,13 +1,14 @@
-const CACHE_NAME = 'khesia-v1';
+const CACHE_NAME = 'khesia-v2.3';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/css/style.css',
-  '/js/app.js',
+  '/css/style.css?v=2.3',
+  '/js/app.js?v=2.3',
   '/manifest.json'
 ];
 
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -16,18 +17,21 @@ self.addEventListener('install', event => {
   );
 });
 
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(keys => Promise.all(
+            keys.map(key => {
+                if (key !== CACHE_NAME) return caches.delete(key);
+            })
+        ))
+    );
+});
+
 self.addEventListener('fetch', event => {
-  // We don't want to cache API calls, only static assets
-  if (event.request.url.includes('/api/')) {
-      return fetch(event.request);
-  }
+  if (event.request.url.includes('/api/')) return;
+  
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      })
+    fetch(event.request)
+      .catch(() => caches.match(event.request))
   );
 });

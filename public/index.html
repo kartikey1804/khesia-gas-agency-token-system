@@ -6,11 +6,20 @@
     <title>Khesia Indane Token System</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4ade80">
-    <link rel="stylesheet" href="css/style.css?v=2.2">
+    <link rel="stylesheet" href="css/style.css?v=2.3">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="js/app.js?v=2.2"></script>
+    <script src="js/app.js?v=2.3"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+    </script>
 </head>
 <body>
     <nav id="navbar" class="glass-nav hidden">
@@ -428,6 +437,16 @@
           .catch(err => console.error('Service Worker registration failed:', err));
       }
     </script>
-    <script src="js/app.js?v=2.2"></script>
+    <script>
+      // Aggressive Unregister of old Service Workers to clear cache
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          for (let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+    </script>
+    <div style="position:fixed; bottom:5px; right:5px; font-size:10px; color:rgba(255,255,255,0.2); pointer-events:none;">v2.3_latest</div>
 </body>
 </html>
