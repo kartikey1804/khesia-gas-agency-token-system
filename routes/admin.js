@@ -189,6 +189,30 @@ router.get('/export', async (req, res) => {
     }
 });
 
+// Bulk Delete Tokens
+router.delete('/tokens/bulk', async (req, res) => {
+    try {
+        const { ids } = req.body;
+        if (!ids || !Array.isArray(ids)) {
+            return res.status(400).json({ success: false, message: 'Invalid IDs provided' });
+        }
+
+        // Safety check: Only delete tokens that don't have consumer data (unfilled)
+        const result = await Token.deleteMany({
+            _id: { $in: ids },
+            consumerName: { $exists: false }
+        });
+
+        res.status(200).json({ 
+            success: true, 
+            message: `${result.deletedCount} tokens deleted successfully.` 
+        });
+    } catch(err) {
+        console.error('Bulk delete error:', err);
+        res.status(500).json({ success: false, message: 'Bulk deletion failed' });
+    }
+});
+
 // Delete Individual Token
 router.delete('/tokens/:id', async (req, res) => {
     try {

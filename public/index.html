@@ -71,11 +71,13 @@
                     </select>
                     <input type="date" id="filter-date">
                     <button class="btn-secondary" onclick="app.loadAdminTokens()">Filter</button>
+                    <button class="btn-danger" id="bulk-delete-btn" onclick="app.deleteSelectedTokens()" style="display:none; background:var(--danger)">Delete Selected</button>
                 </div>
                 <div class="table-responsive">
                     <table class="glass-table">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" id="select-all-tokens" onclick="app.toggleSelectAll(this.checked)"></th>
                                 <th>Sl. No</th>
                                 <th>Token ID</th>
                                 <th>Consumer</th>
@@ -83,6 +85,7 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
+
                         <tbody id="admin-token-tbody"></tbody>
                     </table>
                 </div>

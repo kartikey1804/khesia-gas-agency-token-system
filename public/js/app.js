@@ -165,6 +165,9 @@ const app = {
             
             const tbody = document.getElementById('admin-token-tbody');
             tbody.innerHTML = '';
+            document.getElementById('select-all-tokens').checked = false;
+            this.updateBulkDeleteVisibility();
+
             res.data.tokens.forEach(t => {
                 const tr = document.createElement('tr');
                 let actionBtn = '';
@@ -177,7 +180,14 @@ const app = {
                 if(!t.consumerName || t.status === 'GENERATED') {
                     actionBtn += `<button onclick="app.deleteSingleToken('${t._id}')" style="background: var(--danger); padding: 5px 10px; font-size: 0.8rem; border: none; border-radius: 5px; cursor: pointer; color: #fff; font-weight: bold; margin-left: 5px;">Delete</button>`;
                 }
+                
+                // Only show checkbox for delatable (unfilled) tokens
+                const checkbox = (!t.consumerName || t.status === 'GENERATED') 
+                    ? `<input type="checkbox" class="token-checkbox" value="${t._id}" onclick="app.updateBulkDeleteVisibility()">`
+                    : '';
+
                 tr.innerHTML = `
+                    <td>${checkbox}</td>
                     <td>${t.serialNo}</td>
                     <td>${t.tokenId}</td>
                     <td>${t.consumerName || 'Not filled'}</td>
@@ -187,6 +197,33 @@ const app = {
                 tbody.appendChild(tr);
             });
         } catch(err) {}
+    },
+
+    toggleSelectAll(checked) {
+        document.querySelectorAll('.token-checkbox').forEach(cb => cb.checked = checked);
+        this.updateBulkDeleteVisibility();
+    },
+
+    updateBulkDeleteVisibility() {
+        const checkedCount = document.querySelectorAll('.token-checkbox:checked').length;
+        document.getElementById('bulk-delete-btn').style.display = checkedCount > 0 ? 'inline-block' : 'none';
+    },
+
+    async deleteSelectedTokens() {
+        const selected = Array.from(document.querySelectorAll('.token-checkbox:checked')).map(cb => cb.value);
+        if (selected.length === 0) return;
+
+        if(!confirm(`Are you sure you want to delete ${selected.length} selected tokens?`)) return;
+
+        try {
+            const res = await axios.delete(`${API_URL}/admin/tokens/bulk`, { data: { ids: selected } });
+            this.showSuccess(res.data.message, () => {
+                this.loadAdminStats();
+                this.loadAdminTokens();
+            });
+        } catch(err) {
+            alert(err.response?.data?.message || 'Bulk deletion failed');
+        }
     },
 
     async deleteSingleToken(id) {
