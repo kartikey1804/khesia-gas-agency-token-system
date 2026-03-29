@@ -158,10 +158,40 @@ const app = {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         this.user = null;
+        if(this.syncInterval) clearInterval(this.syncInterval);
         delete axios.defaults.headers.common['Authorization'];
         document.getElementById('navbar').classList.add('hidden');
         this.showView('login-view');
         this.stopScanner();
+    },
+
+    startSync() {
+        if(this.syncInterval) clearInterval(this.syncInterval);
+        this.syncInterval = setInterval(() => {
+            if(!this.user) return;
+            if(this.currentView === 'admin-view') { this.loadAdminStats(); this.loadAdminTokens(); }
+            if(this.currentView === 'staff-view') this.loadStaffStats();
+            if(this.currentView === 'delivery-view') this.loadDeliveryStats();
+        }, 5000); // 5 Seconds Heartbeat
+    },
+
+    checkVersion() {
+        const lastVersion = localStorage.getItem('app_version');
+        if(lastVersion && lastVersion !== this.version) {
+            const banner = document.getElementById('update-banner');
+            if(banner) banner.classList.remove('hidden');
+        }
+        localStorage.setItem('app_version', this.version);
+    },
+
+    forceUpdate() {
+        localStorage.removeItem('app_version');
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let registration of registrations) registration.unregister();
+            });
+        }
+        window.location.reload(true);
     },
 
     showMainLayout() {
