@@ -434,20 +434,21 @@ button {
     
     #print-area {
         display: grid !important;
-        grid-template-columns: 10.5cm 10.5cm !important;
-        grid-template-rows: 9.9cm 9.9cm 9.9cm !important;
+        grid-template-columns: 10.4cm 10.4cm !important;
+        grid-template-rows: 9.6cm 9.6cm 9.6cm !important;
         width: 21cm !important;
         height: 29.7cm !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
         padding: 0 !important;
         background: white;
+        overflow: hidden !important;
     }
 
     .token-print-card {
-        width: 10.5cm;
-        height: 9.9cm;
+        width: 10.4cm;
+        height: 9.6cm;
         border: 0.5px solid #000;
-        padding: 5mm;
+        padding: 4mm;
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
