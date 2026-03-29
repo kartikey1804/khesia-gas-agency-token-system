@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khesia Gas Agency Token System</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4ade80">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <nav id="navbar" class="glass-nav hidden">
+        <div class="logo">KHESIA GAS</div>
+        <ul id="nav-links">
+            <!-- Nav links injected by JS -->
+        </ul>
+    </nav>
+
+    <div id="toast-container"></div>
+
+    <main id="app-container" class="no-print">
+        <!-- LOGIN VIEW -->
+        <section id="login-view" class="view active">
+            <div class="glass-card login-card">
+                <h2>Welcome Back</h2>
+                <form id="login-form">
+                    <div class="input-group">
+                        <label>Username</label>
+                        <input type="text" id="login-username" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Password</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Login</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ADMIN VIEW -->
+        <section id="admin-view" class="view">
+            <div class="dashboard-header">
+                <h2>Admin Dashboard</h2>
+                <div class="actions">
+                    <button class="btn-secondary" onclick="app.exportExcel('daily')">Daily Report</button>
+                    <button class="btn-secondary" onclick="app.exportExcel('monthly')">Monthly Report</button>
+                    <button class="btn-primary" onclick="app.showCreateUserModal()">+ New User</button>
+                </div>
+            </div>
+            
+            <div class="circular-stats-container" id="admin-stats">
+                <div class="circular-stat"><h3>Issued Total</h3><p id="stat-total">0</p></div>
+                <div class="circular-stat secondary"><h3>Issued Today</h3><p id="stat-issued-today">0</p></div>
+                <div class="circular-stat"><h3>Delivered Today</h3><p id="stat-delivered">0</p></div>
+                <div class="circular-stat warning"><h3>Pending</h3><p id="stat-pending">0</p></div>
+            </div>
+
+            <div class="glass-card mg-t-20">
+                <h3>Token List</h3>
+                <div class="filter-bar">
+                    <select id="filter-status">
+                        <option value="">All Statuses</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="DELIVERED">Delivered</option>
+                        <option value="PENDING_APPROVAL">Pending Approval</option>
+                    </select>
+                    <input type="date" id="filter-date">
+                    <button class="btn-secondary" onclick="app.loadAdminTokens()">Filter</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Sl. No</th>
+                                <th>Token ID</th>
+                                <th>Consumer</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-token-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="glass-card mg-t-20">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; gap: 10px;">
+                    <h3>Staff & Delivery Users <span>(Passwords reset daily at 4 AM)</span></h3>
+                    <button class="btn-primary" onclick="app.refreshPasswords()">Refresh Passwords Now</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Current Password</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-users-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- STAFF VIEW -->
+        <section id="staff-view" class="view">
+            <div class="dashboard-header">
+                <h2>Staff Panel</h2>
+                <div class="staff-modes">
+                    <button class="btn-primary" onclick="app.switchStaffMode('generate')">Generate Tokens</button>
+                    <button class="btn-secondary" onclick="app.switchStaffMode('scan')">Scan & Fill Data</button>
+                </div>
+            </div>
+
+            <div class="circular-stats-container">
+                <div class="circular-stat"><h3>Total Issued</h3><p id="staff-stat-total">0</p></div>
+                <div class="circular-stat secondary"><h3>Issued Today</h3><p id="staff-stat-today">0</p></div>
+                <div class="circular-stat warning"><h3>Delivery Pending</h3><p id="staff-stat-pending">0</p></div>
+            </div>
+
+            <div id="staff-generate-subview" class="subview active">
+                <div class="glass-card">
+                    <h3>Generate New QR Tokens</h3>
+                    <div class="input-group">
+                        <label>Number of Tokens</label>
+                        <input type="number" id="token-count" value="1" min="1" max="100">
+                    </div>
+                    <button class="btn-primary" onclick="app.generateTokens()">Generate & Print</button>
+                </div>
+            </div>
+
+            <div id="staff-scan-subview" class="subview">
+                <div class="glass-card">
+                    <h3>Scan QR to Fill Data</h3>
+                    <div id="staff-qr-reader" class="qr-reader"></div>
+                    <button class="btn-secondary mg-t-20" onclick="app.stopScanner()">Stop Scanner</button>
+                </div>
+            </div>
+
+            <div id="staff-fill-subview" class="subview hidden">
+                <div class="glass-card">
+                    <h3>Fill Consumer Data</h3>
+                    <p>Token ID: <strong id="fill-token-id"></strong> | Serial No: <strong id="fill-serial-no"></strong></p>
+                    <form id="fill-data-form">
+                        <input type="hidden" id="fill-hash">
+                        <input type="hidden" id="fill-tid">
+                        <div class="input-group"><label>DAC Number</label><input type="text" id="fill-dac-number" required></div>
+                        <div class="input-group"><label>Consumer Name</label><input type="text" id="fill-consumer-name" required></div>
+                        <div class="input-group"><label>Contact Number</label><input type="text" id="fill-contact-no" pattern="[0-9]{10}" maxlength="10" title="Must be exactly 10 digits" required></div>
+                        <div class="input-group"><label>Consumer Number</label><input type="text" id="fill-consumer-no" required></div>
+                        <div class="input-group">
+                            <label>Expected Delivery Date</label>
+                            <input type="date" id="fill-expected-date" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Next Due Days</label>
+                            <select id="fill-due-days" required>
+                                <option value="25">25 Days</option>
+                                <option value="35">35 Days</option>
+                                <option value="45">45 Days</option>
+                            </select>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="fill-is-early">
+                            <label for="fill-is-early">Early Delivery Request (Admin Approval Required)</label>
+                        </div>
+                        <button type="submit" class="btn-primary">Submit Data</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- DELIVERY VIEW -->
+        <section id="delivery-view" class="view">
+            <div class="dashboard-header">
+                <h2>Delivery Boy Panel</h2>
+            </div>
+            
+            <div class="circular-stats-container">
+                <div class="circular-stat secondary"><h3>Delivered Today</h3><p id="del-stat-done">0</p></div>
+                <div class="circular-stat warning"><h3>Pending Today</h3><p id="del-stat-pending">0</p></div>
+            </div>
+
+            <div class="glass-card" id="delivery-scan-card">
+                <h3>Scan QR for Delivery</h3>
+                <div id="delivery-qr-reader" class="qr-reader"></div>
+            </div>
+            
+            <div id="delivery-action-card" class="glass-card hidden">
+                <h3>Delivery Confirmation</h3>
+                <p><strong>Consumer:</strong> <span id="del-consumer-name"></span></p>
+                <p><strong>Contact:</strong> <span id="del-contact-no"></span></p>
+                <p><strong>Expected Date:</strong> <span id="del-expected-date"></span></p>
+                <p><strong>Status:</strong> <span id="del-status"></span></p>
+                <div class="mg-t-20">
+                    <button class="btn-success" id="btn-confirm-delivery">Confirm Delivery</button>
+                    <button class="btn-secondary" onclick="app.resetDeliveryScan()">Cancel / Scan Again</button>
+                </div>
+            </div>
+
+            <div class="glass-card mg-t-20">
+                <h3>Pending Deliveries Today</h3>
+                <div class="delivery-list" id="delivery-pending-list">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- MODAL -->
+        <div id="create-user-modal" class="modal hidden">
+            <div class="modal-content glass-card">
+                <h3>Create New User</h3>
+                <form id="create-user-form">
+                    <div class="input-group">
+                        <label>Username</label>
+                        <input type="text" id="new-username" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Role</label>
+                        <select id="new-user-role" required>
+                            <option value="Staff">Staff</option>
+                            <option value="Delivery">Delivery</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button type="submit" class="btn-primary">Create</button>
+                        <button type="button" class="btn-secondary" onclick="app.closeModal()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- PRINT TEMPLATE -->
+    <!-- 6 tokens per page A4. Managed by CSS -->
+    <div id="print-area" class="print-only"></div>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('Service Worker registered'))
+          .catch(err => console.error('Service Worker registration failed:', err));
+      }
+    </script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "Khesia Gas Agency",
+  "short_name": "Khesia",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0f2027",
+  "theme_color": "#4ade80",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/11266/11266012.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/11266/11266012.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
