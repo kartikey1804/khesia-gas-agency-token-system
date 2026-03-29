@@ -647,21 +647,47 @@ const app = {
     printTokens(tokens) {
         const printArea = document.getElementById('print-area');
         printArea.innerHTML = '';
-        tokens.forEach(t => {
-            const div = document.createElement('div');
-            div.className = 'printable-token';
-            div.innerHTML = `
-                <div style="border:2px solid #000; padding:15px; background:white; color:black; text-align:center;">
-                    <h2 style="margin:0; font-size:1.4rem;">QR TOKEN: #${t.serialNo}</h2>
-                    <img src="${t.qrImage}" style="width:180px; height:180px; margin:10px 0;">
-                    <div style="font-size:1.1rem; border-top:1px solid #000; padding-top:10px;">
-                        <p><strong>TOKEN ID:</strong> ${t.tokenId}</p>
-                        <p style="margin-top:5px; font-size:0.9rem;">Scan to Register / Confirm Delivery</p>
+        
+        // Batch into pages of 6
+        for (let i = 0; i < tokens.length; i += 6) {
+            const pageTokens = tokens.slice(i, i + 6);
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'print-page-exact';
+            
+            pageTokens.forEach(t => {
+                const card = document.createElement('div');
+                card.className = 'token-print-card';
+                card.innerHTML = `
+                    <div class="token-print-header">
+                        <h2>QR TOKEN: #${t.serialNo}</h2>
                     </div>
-                </div>
-            `;
-            printArea.appendChild(div);
-        });
+                    <div class="token-print-body">
+                        <div class="token-print-info">
+                            <h3>TOKEN ID</h3>
+                            <p>${t.tokenId}</p>
+                            <span style="font-size: 9pt;">Scan to Register / Confirm Delivery</span>
+                        </div>
+                        <img src="${t.qrImage}" class="token-print-qr">
+                    </div>
+                    <div class="token-print-footer">
+                        <div class="stamp-box">Stamp</div>
+                        <div class="signature-box">Signature</div>
+                    </div>
+                `;
+                pageDiv.appendChild(card);
+            });
+            
+            // Add empty slots if less than 6 (as requested: do NOT stretch)
+            for (let j = pageTokens.length; j < 6; j++) {
+                const empty = document.createElement('div');
+                empty.className = 'token-print-card';
+                empty.style.border = '1px dashed #eee'; // Subtle hint of slot
+                pageDiv.appendChild(empty);
+            }
+            
+            printArea.appendChild(pageDiv);
+        }
+        
         window.print();
     },
 

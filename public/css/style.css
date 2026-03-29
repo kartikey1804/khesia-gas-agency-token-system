@@ -549,94 +549,105 @@ button {
 .print-only { display: none; }
 
 @media print {
-    @page { size: A4 portrait; margin: 0; }
-    .no-print { display: none !important; }
+    @page { 
+        size: A4 portrait; 
+        margin: 0.5cm; 
+    }
     
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
     #print-area {
-        display: grid !important;
-        grid-template-columns: 10.4cm 10.4cm !important;
-        grid-template-rows: 9.6cm 9.6cm 9.6cm !important;
-        width: 21cm !important;
-        height: 29.7cm !important;
-        margin: 0 auto !important;
-        padding: 0 !important;
-        background: white;
-        overflow: hidden !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 21cm;
+        background: white !important;
     }
 
-    .printable-token {
-        width: 100%;
-        height: auto;
-        min-height: 4.5in;
-        page-break-inside: avoid;
-        margin-bottom: 0px;
-        border-bottom: 1px dashed #ccc;
-        padding: 15px;
-    }
-    .printable-token:nth-child(6n) {
+    .print-page {
+        display: grid;
+        grid-template-columns: 10cm 10cm; /* Adjusted for 0.5cm margins on 21cm width */
+        grid-template-rows: 9.56cm 9.56cm 9.56cm; /* Adjusted for A4 height */
+        width: 20cm;
+        height: 28.7cm;
         page-break-after: always;
-        border-bottom: none;
+        background: white;
+    }
+
+    /* If the user insists on EXACT 10.5 x 9.9, we must remove margins */
+    .print-page-exact {
+        display: grid;
+        grid-template-columns: 10.5cm 10.5cm;
+        grid-template-rows: 9.9cm 9.9cm 9.9cm;
+        width: 21cm;
+        height: 29.7cm;
+        page-break-after: always;
+        background: white;
     }
 
     .token-print-card {
-        width: 10.4cm;
-        height: 9.6cm;
-        border: 0.5px solid #000;
-        padding: 4mm;
+        width: 10.5cm;
+        height: 9.9cm;
+        border: 1px solid #000;
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        padding: 5mm;
         background: white !important;
         position: relative;
+        overflow: hidden;
     }
 
-    .token-header {
+    .token-print-header {
         text-align: center;
-        font-size: 14pt;
-        font-weight: bold;
         border-bottom: 2px solid #000;
         padding-bottom: 2mm;
+        margin-bottom: 2mm;
     }
+    .token-print-header h2 { margin: 0; font-size: 16pt; }
 
-    .token-body {
+    .token-print-body {
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-grow: 1;
     }
 
-    .token-info h3 { font-size: 16pt; margin: 0; }
-    .token-info p { font-size: 10pt; margin: 2mm 0; }
+    .token-print-info { line-height: 1.4; }
+    .token-print-info h3 { font-size: 20pt; margin: 0; color: #000; }
+    .token-print-info p { font-size: 11pt; margin: 2mm 0; font-weight: bold; }
 
-    .token-qr { width: 3.5cm; height: 3.5cm; }
+    .token-print-qr {
+        width: 3.5cm;
+        height: 3.5cm;
+    }
 
-    .token-footer {
+    .token-print-footer {
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
+        margin-top: 2mm;
     }
 
     .stamp-box {
         width: 2.5cm;
         height: 2.5cm;
-        border: 1px solid #000;
+        border: 2px solid #000;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 8pt;
-        color: #000;
-    }
-
-    .signature-area {
-        text-align: right;
+        font-weight: bold;
         font-size: 10pt;
     }
 
-    .signature-area div {
-        border-top: 1px solid #000;
+    .signature-box {
+        text-align: right;
+        border-top: 1.5px solid #000;
         width: 4cm;
-        margin-top: 5mm;
+        padding-top: 1mm;
+        font-weight: bold;
+        font-size: 10pt;
     }
 }
 
