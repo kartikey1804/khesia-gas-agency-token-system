@@ -143,8 +143,13 @@
             <div id="staff-scan-subview" class="subview">
                 <div class="glass-card">
                     <h3>Scan QR to Fill Data</h3>
-                    <div id="staff-qr-reader" class="qr-reader"></div>
-                    <button class="btn-secondary mg-t-20" onclick="app.stopScanner()">Stop Scanner</button>
+                    <div class="custom-scanner-box">
+                        <div id="staff-qr-reader" style="width: 100%; height: 100%;"></div>
+                        <div class="scanner-overlay-ui"></div>
+                        <div class="scanner-laser"></div>
+                    </div>
+                    <div class="scanner-hint">Point your camera at the Token QR Code</div>
+                    <button class="btn-secondary mg-t-20" onclick="app.stopScanner()" style="width:100%">Cancel Scanning</button>
                 </div>
             </div>
 
@@ -194,7 +199,12 @@
 
             <div class="glass-card" id="delivery-scan-card">
                 <h3>Scan QR for Delivery</h3>
-                <div id="delivery-qr-reader" class="qr-reader"></div>
+                <div class="custom-scanner-box">
+                    <div id="delivery-qr-reader" style="width: 100%; height: 100%;"></div>
+                    <div class="scanner-overlay-ui"></div>
+                    <div class="scanner-laser"></div>
+                </div>
+                <div class="scanner-hint">Scan Token to Mark as Delivered</div>
             </div>
             
             <div id="delivery-action-card" class="glass-card hidden">
@@ -242,11 +252,17 @@
         </div>
 
         <div id="verify-modal" class="modal hidden">
-            <div class="modal-content glass-card" style="max-width: 500px;">
-                <h3>Verify Token Status</h3>
-                <div id="admin-verify-qr-reader" class="qr-reader"></div>
-                <div id="admin-verify-result" class="mg-t-20" style="text-align: left; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px;"></div>
-                <button class="btn-secondary mg-t-20" onclick="app.closeModal()">Close</button>
+            <div class="modal-content glass-card" style="max-width: 450px;">
+                <h3 style="text-align:center">Verify Token Status</h3>
+                <div class="custom-scanner-box" style="margin-top:20px;">
+                    <div id="admin-verify-qr-reader" style="width: 100%; height: 100%;"></div>
+                    <div class="scanner-overlay-ui"></div>
+                    <div class="scanner-laser"></div>
+                </div>
+                <div id="admin-verify-result" class="mg-t-20" style="text-align: left; padding: 15px; background: rgba(0,0,0,0.5); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); min-height: 100px;">
+                    <p style="text-align:center; color:#64748b;">Waiting for scan...</p>
+                </div>
+                <button class="btn-secondary mg-t-20" onclick="app.closeModal()" style="width:100%">Close</button>
             </div>
         </div>
 

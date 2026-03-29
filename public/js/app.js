@@ -122,10 +122,10 @@ const app = {
                 if(t.status === 'PENDING_APPROVAL') {
                     actionBtn = `<button class="btn-success" onclick="app.approveToken('${t._id}')" style="padding: 5px 10px; font-size: 0.8rem; margin-right: 5px;">Approve</button>`;
                 }
-                if(t.status === 'PENDING') {
+                if(t.status === 'PENDING' && t.consumerName) {
                     actionBtn += `<button onclick="app.manualDeliverToken('${t._id}')" style="background: var(--warning); padding: 5px 10px; font-size: 0.8rem; border: none; border-radius: 5px; cursor: pointer; color: #000; font-weight: bold;">Manual Deliver</button>`;
                 }
-                if(t.status === 'GENERATED') {
+                if(!t.consumerName) {
                     actionBtn += `<button onclick="app.deleteSingleToken('${t._id}')" style="background: var(--danger); padding: 5px 10px; font-size: 0.8rem; border: none; border-radius: 5px; cursor: pointer; color: #fff; font-weight: bold; margin-left: 5px;">Delete</button>`;
                 }
                 tr.innerHTML = `
@@ -191,67 +191,73 @@ const app = {
         } catch(err) { alert('Failed to delete user'); }
     },
 
-    async refreshPasswords() {
-        if(!confirm('This will refresh the passwords for ALL staff and delivery users immediately. Continue?')) return;
+    async getBestCamera() {
         try {
-            const res = await axios.post(`${API_URL}/admin/users/refresh-passwords`);
-            alert(res.data.message);
-            this.loadAdminUsers();
-        } catch(err) { alert('Failed to refresh passwords'); }
+            const cameras = await Html5Qrcode.getCameras();
+            if (cameras && cameras.length > 0) {
+                const backCamera = cameras.find(c => 
+                    c.label.toLowerCase().includes('back') || 
+                    c.label.toLowerCase().includes('rear') || 
+                    c.label.toLowerCase().includes('environment')
+                );
+                return backCamera ? backCamera.id : cameras[0].id;
+            }
+        } catch (err) { console.error("Camera detection error:", err); }
+        return null;
     },
 
-    async manualDeliverToken(id) {
-        const reason = prompt('Please enter the reason for manual delivery (Backlog):');
-        if (!reason || !reason.trim()) return alert('Reason is required for manual delivery!');
+    async startScanner(elementId, callback) {
+        await this.stopScanner();
+        this.scanner = new Html5Qrcode(elementId);
+        
+        const config = { fps: 10, qrbox: { width: 280, height: 280 } };
         
         try {
-            await axios.put(`${API_URL}/admin/tokens/${id}/manual-deliver`, { reason });
-            this.showSuccess('Manual delivery saved!', () => {
-                this.loadAdminStats();
-                this.loadAdminTokens();
-            });
-        } catch(err) { alert(err.response?.data?.message || 'Manual delivery failed'); }
+            const cameraId = await this.getBestCamera();
+            if (cameraId) {
+                await this.scanner.start(cameraId, config, callback);
+            } else {
+                await this.scanner.start({ facingMode: "environment" }, config, callback);
+            }
+        } catch (err) {
+            console.error("Scanner start failure:", err);
+            try {
+                await this.scanner.start({ facingMode: "user" }, config, callback);
+            } catch (e) {
+                alert("Could not start camera. Please ensure permissions are granted.");
+            }
+        }
     },
 
-    exportExcel(type) {
-        window.open(`${API_URL}/admin/export?reportType=${type}&token=${localStorage.getItem('token')}`, '_blank');
-    },
-
-    showModal(id) { document.getElementById(id).classList.remove('hidden'); },
-    closeModal() { document.querySelectorAll('.modal').forEach(el => el.classList.add('hidden')); this.stopScanner(); },
-
-    async handleCreateUser(e) {
-        e.preventDefault();
-        const username = document.getElementById('new-username').value;
-        const role = document.getElementById('new-user-role').value;
-        try {
-            await axios.post(`${API_URL}/admin/users`, { username, role });
-            this.closeModal();
-            this.loadAdminUsers();
-            e.target.reset();
-        } catch(err) { alert('Failed to create user'); }
+    async stopScanner() {
+        if (this.scanner && this.scanner.isScanning) {
+            try {
+                await this.scanner.stop();
+            } catch (err) { console.error("Scanner stop error:", err); }
+        }
+        this.scanner = null;
     },
 
     openVerifyScanner() {
         this.showModal('verify-modal');
-        document.getElementById('admin-verify-result').innerHTML = 'Ready to scan...';
+        document.getElementById('admin-verify-result').innerHTML = '<p style="text-align:center; color:#64748b;">Waiting for scan...</p>';
         this.startScanner('admin-verify-qr-reader', async (decodedText) => {
             try {
-                const encoded = btoa(decodedText);
-                const res = await axios.get(`${API_URL}/admin/verify/${encoded}`);
+                const res = await axios.get(`${API_URL}/admin/verify/${btoa(decodedText)}`);
                 if (res.data.success) {
                     const t = res.data.token;
                     document.getElementById('admin-verify-result').innerHTML = `
-                        <p><strong>Status:</strong> <span style="color:var(--primary)">${t.status}</span></p>
-                        <p><strong>Consumer:</strong> ${t.consumerName || 'N/A'}</p>
-                        <p><strong>Contact:</strong> ${t.contactNo || 'N/A'}</p>
-                        <p><strong>Token ID:</strong> ${t.tokenId}</p>
-                        <p><strong>Serial:</strong> ${t.serialNo}</p>
+                        <div style="border-left:4px solid var(--primary); padding-left:10px;">
+                            <h4 style="color:var(--primary); margin-bottom:10px;">Token Verified</h4>
+                            <p><strong>Consumer:</strong> ${t.consumerName || 'Not filled'}</p>
+                            <p><strong>Status:</strong> <span style="color:${t.status === 'DELIVERED' ? 'var(--primary)' : 'var(--warning)'}">${t.status}</span></p>
+                            <p><strong>Token ID:</strong> ${t.tokenId}</p>
+                            <p><strong>Serial:</strong> ${t.serialNo}</p>
+                        </div>
                     `;
-                    // Redirect or Success Tick? For verify, we just show data.
                 }
             } catch(err) {
-                document.getElementById('admin-verify-result').innerHTML = '<p style="color:var(--danger)">Invalid or not found.</p>';
+                document.getElementById('admin-verify-result').innerHTML = '<p style="color:var(--danger); text-align:center;">Invalid Token or QR mismatch</p>';
             }
         });
     },
@@ -383,6 +389,51 @@ const app = {
         });
     },
 
+    switchStaffMode(mode) {
+        document.querySelectorAll('#staff-view .subview').forEach(s => s.classList.remove('active'));
+        document.getElementById(`staff-${mode}-subview`).classList.add('active');
+        this.stopScanner();
+
+        if (mode === 'scan') {
+            this.startScanner('staff-qr-reader', (decodedText) => {
+                const parts = decodedText.split('|');
+                if (parts.length === 4 && parts[0] === 'KINDANE') {
+                    this.stopScanner();
+                    document.getElementById('fill-tid').value = parts[1];
+                    document.getElementById('fill-hash').value = parts[3];
+                    document.getElementById('fill-token-id').innerText = parts[1];
+                    document.getElementById('fill-serial-no').innerText = parts[2];
+                    this.switchStaffMode('fill');
+                }
+            });
+        } else if (mode === 'deliver') {
+            this.startScanner('staff-qr-reader', (decodedText) => {
+                this.handleDeliveryScan(decodedText);
+            });
+        }
+    },
+
+    async handleDeliveryScan(decodedText) {
+        try {
+            const res = await axios.get(`${API_URL}/delivery/scan/${btoa(decodedText)}`);
+            if (res.data.success) {
+                this.stopScanner();
+                const t = res.data.token;
+                document.getElementById('delivery-scan-card').classList.add('hidden');
+                document.getElementById('delivery-action-card').classList.remove('hidden');
+                
+                document.getElementById('del-consumer-name').innerText = t.consumerName;
+                document.getElementById('del-contact-no').innerText = t.contactNo;
+                document.getElementById('del-expected-date').innerText = new Date(t.expectedDeliveryDate).toLocaleDateString();
+                document.getElementById('del-status').innerText = t.status;
+                
+                document.getElementById('btn-confirm-delivery').onclick = () => this.confirmDelivery(t._id);
+            }
+        } catch (err) {
+            alert(err.response?.data?.message || 'Invalid or expired token');
+        }
+    },
+
     async handleStaffFill(e) {
         e.preventDefault();
         const data = {
@@ -447,32 +498,27 @@ const app = {
     },
 
     initDeliveryScanner() {
+        this.showModal('delivery-view'); // if not already shown
         document.getElementById('delivery-scan-card').classList.remove('hidden');
         document.getElementById('delivery-action-card').classList.add('hidden');
-        this.currentDeliveryData = null;
-
-        this.startScanner('delivery-qr-reader', async (decodedText) => {
-            try {
-                const encoded = btoa(decodedText);
-                const res = await axios.get(`${API_URL}/tokens/scan/${encoded}`);
-                
-                if (res.data.success) {
-                    this.stopScanner();
-                    const token = res.data.token;
-                    this.currentDeliveryData = token;
-                    
-                    document.getElementById('delivery-scan-card').classList.add('hidden');
-                    document.getElementById('delivery-action-card').classList.remove('hidden');
-                    
-                    document.getElementById('del-consumer-name').innerText = token.consumerName || 'N/A';
-                    document.getElementById('del-contact-no').innerText = token.contactNo || 'N/A';
-                    document.getElementById('del-expected-date').innerText = new Date(token.expectedDeliveryDate).toLocaleDateString() || 'N/A';
-                    document.getElementById('del-status').innerText = token.status;
-                }
-            } catch(err) {
-                alert(err.response?.data?.message || 'Invalid QR Code');
-            }
+        
+        this.startScanner('delivery-qr-reader', (decodedText) => {
+            this.handleDeliveryScan(decodedText);
         });
+    },
+
+    async confirmDelivery(id) {
+        try {
+            const res = await axios.put(`${API_URL}/delivery/tokens/${id}/deliver`);
+            if (res.data.success) {
+                this.showSuccess('Token Delivered Successfully!', () => {
+                    this.loadDeliveryStats();
+                    this.initDeliveryScanner();
+                });
+            }
+        } catch (err) {
+            alert(err.response?.data?.message || 'Delivery confirmation failed');
+        }
     },
 
     async markDelivered() {
