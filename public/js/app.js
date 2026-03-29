@@ -777,11 +777,25 @@ const app = {
                 const t = res.data.token;
                 document.getElementById('delivery-scan-card').classList.add('hidden');
                 document.getElementById('delivery-action-card').classList.remove('hidden');
-                document.getElementById('del-consumer-name').innerText = t.consumerName;
-                document.getElementById('del-contact-no').innerText = t.contactNo;
-                document.getElementById('del-expected-date').innerText = new Date(t.expectedDeliveryDate).toLocaleDateString();
+                // Safe Fallbacks for data visibility
+                document.getElementById('del-consumer-name').innerText = t.consumerName || 'Not Registered';
+                document.getElementById('del-contact-no').innerText = t.contactNo || 'N/A';
+                document.getElementById('del-expected-date').innerText = t.expectedDeliveryDate ? new Date(t.expectedDeliveryDate).toLocaleDateString() : 'TBD';
                 document.getElementById('del-status').innerText = t.status;
-                document.getElementById('btn-confirm-delivery').onclick = () => this.confirmDelivery(t.tokenId, t.qrHash);
+
+                const confirmBtn = document.getElementById('btn-confirm-delivery');
+                if (t.status === 'GENERATED') {
+                    confirmBtn.disabled = true;
+                    confirmBtn.innerText = 'Registration Pending';
+                    confirmBtn.style.opacity = '0.5';
+                    confirmBtn.style.cursor = 'not-allowed';
+                } else {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerText = 'Confirm Delivery';
+                    confirmBtn.style.opacity = '1';
+                    confirmBtn.style.cursor = 'pointer';
+                    confirmBtn.onclick = () => this.confirmDelivery(t.tokenId, t.qrHash);
+                }
             }
         } catch (err) { alert(err.response?.data?.message || 'Invalid or expired token'); }
     },
@@ -801,11 +815,25 @@ const app = {
                 const t = res.data.token;
                 document.getElementById('delivery-scan-card').classList.add('hidden');
                 document.getElementById('delivery-action-card').classList.remove('hidden');
-                document.getElementById('del-consumer-name').innerText = t.consumerName;
-                document.getElementById('del-contact-no').innerText = t.contactNo;
-                document.getElementById('del-expected-date').innerText = new Date(t.expectedDeliveryDate).toLocaleDateString();
+                // Safe Fallbacks for data visibility
+                document.getElementById('del-consumer-name').innerText = t.consumerName || 'Not Registered';
+                document.getElementById('del-contact-no').innerText = t.contactNo || 'N/A';
+                document.getElementById('del-expected-date').innerText = t.expectedDeliveryDate ? new Date(t.expectedDeliveryDate).toLocaleDateString() : 'TBD';
                 document.getElementById('del-status').innerText = t.status;
-                document.getElementById('btn-confirm-delivery').onclick = () => this.confirmDelivery(t.tokenId, t.qrHash);
+
+                const confirmBtn = document.getElementById('btn-confirm-delivery');
+                if (t.status === 'GENERATED') {
+                    confirmBtn.disabled = true;
+                    confirmBtn.innerText = 'Registration Pending';
+                    confirmBtn.style.opacity = '0.5';
+                    confirmBtn.style.cursor = 'not-allowed';
+                } else {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerText = 'Confirm Delivery';
+                    confirmBtn.style.opacity = '1';
+                    confirmBtn.style.cursor = 'pointer';
+                    confirmBtn.onclick = () => this.confirmDelivery(t.tokenId, t.qrHash);
+                }
             }
         } catch (err) {
             alert(err.response?.data?.message || 'Token not found or not ready for delivery');
