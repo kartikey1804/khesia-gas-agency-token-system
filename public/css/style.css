@@ -611,6 +611,7 @@ button {
         justify-content: space-between;
         padding: 5mm;
         background: white !important;
+        color: #000 !important; /* Force black text */
         position: relative;
         overflow: hidden;
         -webkit-print-color-adjust: exact;
@@ -623,7 +624,15 @@ button {
         padding-bottom: 2mm;
         margin-bottom: 2mm;
     }
-    .token-print-header h2 { margin: 0; font-size: 16pt; }
+    .token-print-header h2 {
+        margin: 0;
+        text-align: center;
+        font-size: 24pt;
+        border-bottom: 2px solid #000;
+        padding-bottom: 5mm;
+        color: #000 !important;
+        font-weight: 800;
+    }
 
     .token-print-body {
         display: flex;
@@ -633,8 +642,22 @@ button {
     }
 
     .token-print-info { line-height: 1.4; }
-    .token-print-info h3 { font-size: 20pt; margin: 0; color: #000; }
-    .token-print-info p { font-size: 11pt; margin: 2mm 0; font-weight: bold; }
+    .token-print-info h3 {
+        margin: 0;
+        font-size: 14pt;
+        color: #000 !important;
+        font-weight: bold;
+    }
+    .token-print-info p {
+        font-size: 18pt;
+        font-weight: 800;
+        margin: 5px 0;
+        color: #000 !important;
+    }
+
+    .token-print-info span {
+        color: #444 !important;
+    }
 
     .token-print-qr {
         width: 3.5cm;

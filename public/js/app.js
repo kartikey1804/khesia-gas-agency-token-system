@@ -659,7 +659,7 @@ const app = {
                 card.className = 'token-print-card';
                 card.innerHTML = `
                     <div class="token-print-header">
-                        <h2>#${t.serialNo}</h2>
+                        <h2>Token No: #${t.serialNo}</h2>
                     </div>
                     <div class="token-print-body">
                         <div class="token-print-info">
