@@ -140,6 +140,23 @@ body {
 
 .sidebar-overlay.active { display: block; }
 
+.btn-lang {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--primary);
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-right: 15px;
+    transition: all 0.3s ease;
+}
+.btn-lang:hover {
+    background: var(--primary);
+    color: #000;
+}
+
 #nav-links li a:hover {
 
     color: var(--primary);

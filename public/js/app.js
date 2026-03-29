@@ -4,8 +4,109 @@ const app = {
     user: null,
     scanner: null,
     startFromOne: false,
+    i18n: {
+        current: localStorage.getItem('lang') || 'en',
+        en: {
+            app_title: 'KHESIA INDANE',
+            admin_dash: 'Admin Dashboard',
+            staff_dash: 'Staff Dashboard',
+            del_dash: 'Delivery Boy Panel',
+            reg: 'Customer Register',
+            gen: 'Generate Tokens',
+            scan_fill: 'Scan & Fill Data',
+            scan_del: 'Scan & Deliver',
+            logout: 'Logout',
+            total_issued: 'Total Issued',
+            issued_today: 'Issued Today',
+            pending: 'Delivery Pending',
+            confirm_del: 'Confirm Delivery',
+            unfilled_tokens: 'Delete Unused Tokens',
+            add_staff: 'Add Staff/User',
+            refresh_pass: 'Refresh Passwords',
+            clear_unused: 'Clear Unused Tokens',
+            verify_token: 'Verify Token',
+            delivered_today: 'Delivered Today',
+            token_list: 'Token List',
+            daily_report: 'Daily Report',
+            monthly_report: 'Monthly Report',
+            new_user: '+ New User',
+            token_count: 'Number of Tokens',
+            gen_print: 'Generate & Print',
+            all_rec: 'All Records',
+            day_wise: 'Day-wise',
+            week_wise: 'Week-wise',
+            month_wise: 'Month-wise',
+            quarterly: 'Quarterly',
+            due_wise: 'Due Date-wise',
+            export: 'Export to Excel',
+            scan_del_title: 'Scan QR for Delivery',
+            scan_del_hint: 'Scan Token to Mark as Delivered'
+        },
+        hi: {
+            app_title: 'खेसिया इंडेन',
+            admin_dash: 'एडमिन डैशबोर्ड',
+            staff_dash: 'स्टाफ डैशबोर्ड',
+            del_dash: 'वितरण कर्मचारी पैनल',
+            reg: 'ग्राहक रजिस्टर',
+            gen: 'टोकन जनरेट करें',
+            scan_fill: 'पंजीकरण (स्कैन)',
+            scan_del: 'वितरण करें (स्कैन)',
+            logout: 'लॉगआउट',
+            total_issued: 'कुल जारी',
+            issued_today: 'आज जारी',
+            pending: 'वितरण लंबित',
+            confirm_del: 'वितरण की पुष्टि करें',
+            unfilled_tokens: 'अप्रयुक्त हटाएं',
+            add_staff: 'स्टाफ जोड़ें',
+            refresh_pass: 'पासवर्ड बदलें',
+            clear_unused: 'टोकन साफ करें',
+            verify_token: 'सत्यापित करें',
+            delivered_today: 'आज का वितरण',
+            token_list: 'टोकन सूची',
+            daily_report: 'दैनिक रिपोर्ट',
+            monthly_report: 'मासिक रिपोर्ट',
+            new_user: '+ नया यूजर',
+            token_count: 'टोकन की संख्या',
+            gen_print: 'जनरेट & प्रिंट',
+            all_rec: 'सभी रिकॉर्ड',
+            day_wise: 'दैनिक',
+            week_wise: 'साप्ताहिक',
+            month_wise: 'मासिक',
+            quarterly: 'तिमाही',
+            due_wise: 'देय तिथि अनुसार',
+            export: 'एक्सेल में निकालें',
+            scan_del_title: 'डिलिवरी स्कैन करें',
+            scan_del_hint: 'वितरण के लिए टोकन स्कैन करें'
+        }
+    },
+
+    t(key) {
+        return this.i18n[this.i18n.current][key] || key;
+    },
+
+    toggleLanguage() {
+        this.i18n.current = this.i18n.current === 'en' ? 'hi' : 'en';
+        localStorage.setItem('lang', this.i18n.current);
+        this.updateStaticTranslations();
+        this.renderSidebar();
+        if (this.user) {
+            if (this.currentView === 'admin-view') { this.loadAdminStats(); this.loadAdminTokens(); }
+            if (this.currentView === 'staff-view') this.loadStaffStats();
+            if (this.currentView === 'delivery-view') this.loadDeliveryStats();
+        }
+    },
+
+    updateStaticTranslations() {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            el.innerText = this.t(key);
+        });
+        const btn = document.getElementById('lang-toggle');
+        if (btn) btn.innerText = this.i18n.current === 'en' ? 'हिन्दी / EN' : 'ENGLISH / HI';
+    },
 
     async init() {
+        this.updateStaticTranslations();
         const token = localStorage.getItem('token');
         const user = localStorage.getItem('user');
 
@@ -90,35 +191,38 @@ const app = {
 
     renderSidebar() {
         const sidebarLinks = document.getElementById('sidebar-links');
-        const userInfo = document.getElementById('nav-user-info');
+        const userDisplay = document.getElementById('user-display');
         
         const username = this.user?.username || 'User';
-        userInfo.innerHTML = `<span style="color:var(--primary)">${username}</span>`;
+        userDisplay.innerHTML = `<span style="color:var(--primary)">${username}</span>`;
         
+        // Update Logo in Sidebar
+        document.querySelectorAll('.logo').forEach(l => l.innerText = this.t('app_title'));
+
         let links = '';
         if (this.user.role === 'Admin') {
             links = `
-                <li onclick="app.showView('admin-view'); app.toggleSidebar()">Admin Dashboard</li>
-                <li onclick="app.showRegister()">Customer Register</li>
-                <li onclick="app.showModal('create-user-modal'); app.toggleSidebar()">Add Staff/User</li>
-                <li onclick="app.refreshPasswords(); app.toggleSidebar()">Refresh Passwords</li>
-                <li onclick="app.deleteUnusedTokens(); app.toggleSidebar()">Clear Unused Tokens</li>
-                <li onclick="app.logout()">Logout</li>
+                <li onclick="app.showView('admin-view'); app.toggleSidebar()">${this.t('admin_dash')}</li>
+                <li onclick="app.showRegister()">${this.t('reg')}</li>
+                <li onclick="app.showModal('create-user-modal'); app.toggleSidebar()">${this.t('add_staff')}</li>
+                <li onclick="app.refreshPasswords(); app.toggleSidebar()">${this.t('refresh_pass')}</li>
+                <li onclick="app.deleteUnusedTokens(); app.toggleSidebar()">${this.t('clear_unused')}</li>
+                <li onclick="app.logout()">${this.t('logout')}</li>
             `;
         } else if (this.user.role.startsWith('Staff')) {
             links = `
-                <li onclick="app.showView('staff-view'); app.toggleSidebar()">Staff Dashboard</li>
-                <li onclick="app.showRegister()">Customer Register</li>
-                <li onclick="app.switchStaffMode('generate'); app.toggleSidebar()">Generate Tokens</li>
-                <li onclick="app.switchStaffMode('scan'); app.toggleSidebar()">Scan & Fill Data</li>
-                <li onclick="app.switchStaffMode('deliver'); app.toggleSidebar()">Scan & Deliver</li>
-                <li onclick="app.deleteUnusedTokens(); app.toggleSidebar()">Clear Unused Tokens</li>
-                <li onclick="app.logout()">Logout</li>
+                <li onclick="app.showView('staff-view'); app.toggleSidebar()">${this.t('staff_dash')}</li>
+                <li onclick="app.showRegister()">${this.t('reg')}</li>
+                <li onclick="app.switchStaffMode('generate'); app.toggleSidebar()">${this.t('gen')}</li>
+                <li onclick="app.switchStaffMode('scan'); app.toggleSidebar()">${this.t('scan_fill')}</li>
+                <li onclick="app.switchStaffMode('deliver'); app.toggleSidebar()">${this.t('scan_del')}</li>
+                <li onclick="app.deleteUnusedTokens(); app.toggleSidebar()">${this.t('clear_unused')}</li>
+                <li onclick="app.logout()">${this.t('logout')}</li>
             `;
         } else if (this.user.role === 'Delivery') {
             links = `
-                <li onclick="app.showView('delivery-view'); app.toggleSidebar()">Delivery Panel</li>
-                <li onclick="app.logout()">Logout</li>
+                <li onclick="app.showView('delivery-view'); app.toggleSidebar()">${this.t('del_dash')}</li>
+                <li onclick="app.logout()">${this.t('logout')}</li>
             `;
         }
         sidebarLinks.innerHTML = links;

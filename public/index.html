@@ -19,7 +19,10 @@
             </button>
             <div class="logo">KHESIA INDANE</div>
         </div>
-        <div id="nav-user-info" class="nav-right"></div>
+        <div id="nav-user-info" class="nav-right">
+            <button id="lang-toggle" onclick="app.toggleLanguage()" class="btn-lang">हिन्दी / EN</button>
+            <div id="user-display"></div>
+        </div>
     </nav>
 
     <!-- Sidebar -->
@@ -119,21 +122,23 @@
                 <div class="actions">
                     <button class="btn-primary" onclick="app.openVerifyScanner()">Verify Token</button>
                     <button class="btn-danger" onclick="app.deleteUnusedTokens()" style="background:var(--danger)">Delete Unused Tokens</button>
-                    <button class="btn-secondary" onclick="app.exportExcel('daily')">Daily Report</button>
-                    <button class="btn-secondary" onclick="app.exportExcel('monthly')">Monthly Report</button>
-                    <button class="btn-primary" onclick="app.showModal('create-user-modal')">+ New User</button>
+                    <button class="btn-primary" onclick="app.openVerifyScanner()" data-i18n="verify_token">Verify Token</button>
+                    <button class="btn-danger" onclick="app.deleteUnusedTokens()" style="background:var(--danger)" data-i18n="del_unused">Delete Unused Tokens</button>
+                    <button class="btn-secondary" onclick="app.exportExcel('daily')" data-i18n="daily_report">Daily Report</button>
+                    <button class="btn-secondary" onclick="app.exportExcel('monthly')" data-i18n="monthly_report">Monthly Report</button>
+                    <button class="btn-primary" onclick="app.showModal('create-user-modal')" data-i18n="new_user">+ New User</button>
                 </div>
             </div>
             
             <div class="circular-stats-container" id="admin-stats">
-                <div class="circular-stat"><h3>Issued Total</h3><p id="stat-total">0</p></div>
-                <div class="circular-stat secondary"><h3>Issued Today</h3><p id="stat-issued-today">0</p></div>
-                <div class="circular-stat"><h3>Delivered Today</h3><p id="stat-delivered">0</p></div>
-                <div class="circular-stat warning"><h3>Pending</h3><p id="stat-pending">0</p></div>
+                <div class="circular-stat"><h3 data-i18n="total_issued">Total Issued</h3><p id="stat-total">0</p></div>
+                <div class="circular-stat secondary"><h3 data-i18n="issued_today">Issued Today</h3><p id="stat-issued-today">0</p></div>
+                <div class="circular-stat"><h3 data-i18n="delivered_today">Delivered Today</h3><p id="stat-delivered">0</p></div>
+                <div class="circular-stat warning"><h3 data-i18n="pending">Pending</h3><p id="stat-pending">0</p></div>
             </div>
 
             <div class="glass-card mg-t-20">
-                <h3>Token List</h3>
+                <h3 data-i18n="token_list">Token List</h3>
                 <div class="filter-bar">
                     <select id="filter-status">
                         <option value="">All Statuses</option>
@@ -197,21 +202,21 @@
             </div>
 
             <div class="circular-stats-container">
-                <div class="circular-stat"><h3>Total Issued</h3><p id="staff-stat-total">0</p></div>
-                <div class="circular-stat secondary"><h3>Issued Today</h3><p id="staff-stat-today">0</p></div>
-                <div class="circular-stat warning"><h3>Delivery Pending</h3><p id="staff-stat-pending">0</p></div>
+                <div class="circular-stat"><h3 data-i18n="total_issued">Total Issued</h3><p id="staff-stat-total">0</p></div>
+                <div class="circular-stat secondary"><h3 data-i18n="issued_today">Issued Today</h3><p id="staff-stat-today">0</p></div>
+                <div class="circular-stat warning"><h3 data-i18n="pending">Delivery Pending</h3><p id="staff-stat-pending">0</p></div>
             </div>
 
             <div id="staff-generate-subview" class="subview active">
                 <div class="glass-card">
-                    <h3>Generate New QR Tokens</h3>
+                    <h3 data-i18n="gen">Generate New QR Tokens</h3>
                     <div class="input-group">
-                        <label>Number of Tokens</label>
+                        <label data-i18n="token_count">Number of Tokens</label>
                         <input type="number" id="token-count" value="1" min="1" max="100">
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button class="btn-primary" onclick="app.generateTokens()">Generate & Print</button>
-                        <button class="btn-danger" onclick="app.deleteUnusedTokens()" style="background:var(--danger)">Delete Unused Tokens</button>
+                        <button class="btn-primary" onclick="app.generateTokens()" data-i18n="gen_print">Generate & Print</button>
+                        <button class="btn-danger" onclick="app.deleteUnusedTokens()" style="background:var(--danger)" data-i18n="unfilled_tokens">Delete Unused Tokens</button>
                     </div>
                 </div>
             </div>
@@ -265,17 +270,17 @@
         <!-- CUSTOMER REGISTER VIEW -->
         <section id="register-view" class="view">
             <div class="dashboard-header">
-                <h2>Customer Register</h2>
+                <h2 data-i18n="reg">Customer Register</h2>
                 <div class="register-controls">
                     <select id="register-view-type" onchange="app.filterRegister(this.value)" style="padding: 10px; border-radius: 8px; border: none; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2);">
-                        <option value="all">All Records</option>
-                        <option value="day">Day-wise</option>
-                        <option value="week">Week-wise</option>
-                        <option value="month">Month-wise</option>
-                        <option value="quarter">Quarterly</option>
-                        <option value="due">Due Date-wise</option>
+                        <option value="all" data-i18n="all_rec">All Records</option>
+                        <option value="day" data-i18n="day_wise">Day-wise</option>
+                        <option value="week" data-i18n="week_wise">Week-wise</option>
+                        <option value="month" data-i18n="month_wise">Month-wise</option>
+                        <option value="quarter" data-i18n="quarterly">Quarterly</option>
+                        <option value="due" data-i18n="due_wise">Due Date-wise</option>
                     </select>
-                    <button class="btn-success" onclick="app.exportRegister()">Export to Excel</button>
+                    <button class="btn-success" onclick="app.exportRegister()" data-i18n="export">Export to Excel</button>
                 </div>
             </div>
             
@@ -303,22 +308,22 @@
         <!-- DELIVERY VIEW -->
         <section id="delivery-view" class="view">
             <div class="dashboard-header">
-                <h2>Delivery Boy Panel</h2>
+                <h2 data-i18n="del_dash">Delivery Boy Panel</h2>
             </div>
             
             <div class="circular-stats-container">
-                <div class="circular-stat secondary"><h3>Delivered Today</h3><p id="del-stat-done">0</p></div>
-                <div class="circular-stat warning"><h3>Pending Today</h3><p id="del-stat-pending">0</p></div>
+                <div class="circular-stat secondary"><h3 data-i18n="delivered_today">Delivered Today</h3><p id="del-stat-done">0</p></div>
+                <div class="circular-stat warning"><h3 data-i18n="pending">Pending Today</h3><p id="del-stat-pending">0</p></div>
             </div>
 
             <div class="glass-card" id="delivery-scan-card">
-                <h3>Scan QR for Delivery</h3>
+                <h3 data-i18n="scan_del_title">Scan QR for Delivery</h3>
                 <div class="custom-scanner-box">
                     <div id="delivery-qr-reader" style="width: 100%; height: 100%;"></div>
                     <div class="scanner-overlay-ui"></div>
                     <div class="scanner-laser"></div>
                 </div>
-                <div class="scanner-hint">Scan Token to Mark as Delivered</div>
+                <div class="scanner-hint" data-i18n="scan_del_hint">Scan Token to Mark as Delivered</div>
             </div>
             
             <div id="delivery-action-card" class="glass-card hidden">
