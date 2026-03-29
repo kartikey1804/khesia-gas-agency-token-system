@@ -50,6 +50,7 @@ router.post('/generate', protect, authorize('Admin', 'Staff'), async (req, res) 
 // @desc    Get staff stats
 // @access  Staff, Admin
 router.get('/stats', protect, authorize('Admin', 'Staff'), async (req, res) => {
+    try {
         const activeStatuses = ['PENDING', 'DELIVERED', 'PENDING_APPROVAL'];
         const totalIssued = await Token.countDocuments({ status: { $in: activeStatuses } });
         const startOfDay = new Date();
@@ -60,7 +61,6 @@ router.get('/stats', protect, authorize('Admin', 'Staff'), async (req, res) => {
         });
         const pending = await Token.countDocuments({ status: 'PENDING' });
         res.status(200).json({ success: true, stats: { totalIssued, issuedToday, pending } });
-
     } catch(err) {
         res.status(500).json({ success: false });
     }
