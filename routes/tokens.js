@@ -180,4 +180,91 @@ router.post('/:id/request-update', protect, authorize('Staff', 'Admin'), async (
     }
 });
 
+const ExcelJS = require('exceljs');
+
+// ... existing routes ...
+
+// GET Customer Register
+router.get('/register', protect, async (req, res) => {
+    try {
+        let query = { consumerName: { $exists: true, $ne: '' } };
+        const { startDate, endDate, viewType } = req.query;
+
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            
+            if (viewType === 'due') {
+                query.expectedDeliveryDate = { $gte: start, $lte: end };
+            } else {
+                query.createdAt = { $gte: start, $lte: end };
+            }
+        }
+
+        const tokens = await Token.find(query).sort({ createdAt: -1 });
+        res.status(200).json({ success: true, tokens });
+    } catch(err) {
+        res.status(500).json({ success: false, message: 'Failed to fetch register' });
+    }
+});
+
+// GET Export Register
+router.get('/export-register', protect, async (req, res) => {
+    try {
+        let query = { consumerName: { $exists: true, $ne: '' } };
+        const { startDate, endDate, viewType } = req.query;
+
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+            if (viewType === 'due') {
+                query.expectedDeliveryDate = { $gte: start, $lte: end };
+            } else {
+                query.createdAt = { $gte: start, $lte: end };
+            }
+        }
+
+        const tokens = await Token.find(query).sort({ createdAt: -1 });
+
+        const workbook = new ExcelJS.Workbook();
+        const sheet = workbook.addWorksheet('Customer Register');
+
+        sheet.columns = [
+            { header: 'Serial No', key: 'serialNo', width: 10 },
+            { header: 'Token ID', key: 'tokenId', width: 15 },
+            { header: 'Consumer Name', key: 'consumerName', width: 25 },
+            { header: 'Contact No', key: 'contactNo', width: 15 },
+            { header: 'Consumer No', key: 'consumerNo', width: 15 },
+            { header: 'DAC Number', key: 'dacNumber', width: 15 },
+            { header: 'Date Filled', key: 'createdAt', width: 20 },
+            { header: 'Expected Delivery', key: 'expectedDeliveryDate', width: 20 },
+            { header: 'Status', key: 'status', width: 15 }
+        ];
+
+        tokens.forEach(t => {
+            sheet.addRow({
+                serialNo: t.serialNo,
+                tokenId: t.tokenId,
+                consumerName: t.consumerName,
+                contactNo: t.contactNo,
+                consumerNo: t.consumerNo,
+                dacNumber: t.dacNumber,
+                createdAt: t.createdAt.toLocaleString(),
+                expectedDeliveryDate: t.expectedDeliveryDate ? new Date(t.expectedDeliveryDate).toLocaleDateString() : 'N/A',
+                status: t.status
+            });
+        });
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename=Customer_Register_${viewType || 'All'}.xlsx`);
+
+        await workbook.xlsx.write(res);
+        res.end();
+    } catch(err) {
+        res.status(500).send('Export failed');
+    }
+});
+
 module.exports = router;

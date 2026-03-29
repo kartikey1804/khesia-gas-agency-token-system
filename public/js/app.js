@@ -99,6 +99,7 @@ const app = {
         if (this.user.role === 'Admin') {
             links = `
                 <li onclick="app.showView('admin-view'); app.toggleSidebar()">Admin Dashboard</li>
+                <li onclick="app.showRegister()">Customer Register</li>
                 <li onclick="app.showModal('create-user-modal'); app.toggleSidebar()">Add Staff/User</li>
                 <li onclick="app.refreshPasswords(); app.toggleSidebar()">Refresh Passwords</li>
                 <li onclick="app.deleteUnusedTokens(); app.toggleSidebar()">Clear Unused Tokens</li>
@@ -106,6 +107,8 @@ const app = {
             `;
         } else if (this.user.role.startsWith('Staff')) {
             links = `
+                <li onclick="app.showView('staff-view'); app.toggleSidebar()">Staff Dashboard</li>
+                <li onclick="app.showRegister()">Customer Register</li>
                 <li onclick="app.switchStaffMode('generate'); app.toggleSidebar()">Generate Tokens</li>
                 <li onclick="app.switchStaffMode('scan'); app.toggleSidebar()">Scan & Fill Data</li>
                 <li onclick="app.switchStaffMode('deliver'); app.toggleSidebar()">Scan & Deliver</li>
@@ -683,6 +686,108 @@ const app = {
                 this.loadStaffStats();
             });
         } catch(err) { alert(err.response?.data?.message || 'Request failed'); }
+    },
+
+    // --- REGISTER METHODS ---
+    showRegister() {
+        this.showView('register-view');
+        this.filterRegister('all');
+        this.toggleSidebar();
+    },
+
+    async filterRegister(viewType) {
+        let startDate = null, endDate = null;
+        const now = new Date();
+        document.getElementById('register-filter-info').innerText = `Viewing: ${viewType.toUpperCase()} Reports`;
+
+        if (viewType !== 'all' && viewType !== 'due') {
+            let start = new Date();
+            if (viewType === 'day') {
+                start.setHours(0,0,0,0);
+            } else if (viewType === 'week') {
+                const day = now.getDay();
+                const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+                start = new Date(now.setDate(diff));
+                start.setHours(0,0,0,0);
+            } else if (viewType === 'month') {
+                start = new Date(now.getFullYear(), now.getMonth(), 1);
+            } else if (viewType === 'quarter') {
+                const quarter = Math.floor(now.getMonth() / 3);
+                start = new Date(now.getFullYear(), quarter * 3, 1);
+                const end = new Date(start.getFullYear(), start.getMonth() + 3, 0);
+                startDate = start.toISOString();
+                endDate = end.toISOString();
+            }
+            if (viewType !== 'quarter') {
+                startDate = start.toISOString();
+                endDate = new Date().toISOString();
+            }
+        } else if (viewType === 'due') {
+            // For due date, show starting from today onwards for next 30 days by default
+            const start = new Date();
+            const end = new Date();
+            end.setDate(start.getDate() + 30);
+            startDate = start.toISOString();
+            endDate = end.toISOString();
+            document.getElementById('register-filter-info').innerText = "Viewing: Next 30 Days Due Dates";
+        }
+
+        this.loadCustomerRegister(viewType, startDate, endDate);
+    },
+
+    async loadCustomerRegister(viewType, startDate, endDate) {
+        try {
+            const params = { viewType };
+            if (startDate) params.startDate = startDate;
+            if (endDate) params.endDate = endDate;
+
+            const res = await axios.get(`${API_URL}/tokens/register`, { params });
+            const tbody = document.getElementById('register-tbody');
+            tbody.innerHTML = '';
+
+            res.data.tokens.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${new Date(t.createdAt).toLocaleDateString()}</td>
+                    <td>${t.consumerName}</td>
+                    <td>${t.consumerNo}</td>
+                    <td>${t.contactNo}</td>
+                    <td>${t.dacNumber}</td>
+                    <td><span style="color:${t.status === 'DELIVERED' ? 'var(--primary)' : 'var(--warning)'}">${t.status}</span></td>
+                    <td>${t.expectedDeliveryDate ? new Date(t.expectedDeliveryDate).toLocaleDateString() : 'N/A'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch(err) { console.error(err); }
+    },
+
+    exportRegister() {
+        const viewType = document.getElementById('register-view-type').value;
+        const now = new Date();
+        let startDate = '', endDate = '';
+
+        if (viewType !== 'all') {
+             // Logic repeated for simplicity or extract to helper
+             let start = new Date();
+             if (viewType === 'day') start.setHours(0,0,0,0);
+             else if (viewType === 'week') {
+                 const day = now.getDay();
+                 const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+                 start = new Date(now.setDate(diff));
+             } else if (viewType === 'month') start = new Date(now.getFullYear(), now.getMonth(), 1);
+             
+             startDate = start.toISOString();
+             endDate = new Date().toISOString();
+
+             if (viewType === 'quarter') {
+                 const quarter = Math.floor(now.getMonth() / 3);
+                 startDate = new Date(now.getFullYear(), quarter * 3, 1).toISOString();
+                 endDate = new Date(now.getFullYear(), (quarter + 1) * 3, 0).toISOString();
+             }
+        }
+        
+        const url = `${API_URL}/tokens/export-register?viewType=${viewType}&startDate=${startDate}&endDate=${endDate}`;
+        window.location.href = url;
     },
 
     init() {

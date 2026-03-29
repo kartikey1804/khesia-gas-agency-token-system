@@ -261,6 +261,44 @@
                 </div>
             </div>
         </section>
+        
+        <!-- CUSTOMER REGISTER VIEW -->
+        <section id="register-view" class="view">
+            <div class="dashboard-header">
+                <h2>Customer Register</h2>
+                <div class="register-controls">
+                    <select id="register-view-type" onchange="app.filterRegister(this.value)" style="padding: 10px; border-radius: 8px; border: none; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2);">
+                        <option value="all">All Records</option>
+                        <option value="day">Day-wise</option>
+                        <option value="week">Week-wise</option>
+                        <option value="month">Month-wise</option>
+                        <option value="quarter">Quarterly</option>
+                        <option value="due">Due Date-wise</option>
+                    </select>
+                    <button class="btn-success" onclick="app.exportRegister()">Export to Excel</button>
+                </div>
+            </div>
+            
+            <div class="glass-card">
+                <div id="register-filter-info" style="margin-bottom: 1rem; color: var(--primary); font-weight: bold; font-size: 1.1rem;"></div>
+                <div class="table-responsive">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Date Filled</th>
+                                <th>Consumer Name</th>
+                                <th>Consumer No</th>
+                                <th>Contact</th>
+                                <th>DAC</th>
+                                <th>Status</th>
+                                <th>Expected Delivery</th>
+                            </tr>
+                        </thead>
+                        <tbody id="register-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
         <!-- DELIVERY VIEW -->
         <section id="delivery-view" class="view">
