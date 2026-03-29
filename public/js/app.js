@@ -143,10 +143,15 @@ const app = {
     async deleteSingleToken(id) {
         if(!confirm('Delete this unused token?')) return;
         try {
-            await axios.delete(`${API_URL}/admin/tokens/${id}`);
-            this.loadAdminStats();
-            this.loadAdminTokens();
-        } catch(err) { alert('Failed to delete token'); }
+            const res = await axios.delete(`${API_URL}/admin/tokens/${id}`);
+            this.showSuccess(res.data.message, () => {
+                this.loadAdminStats();
+                this.loadAdminTokens();
+            });
+        } catch(err) { 
+            console.error(err);
+            alert(err.response?.data?.message || 'Failed to delete token'); 
+        }
     },
 
     async loadAdminUsers() {

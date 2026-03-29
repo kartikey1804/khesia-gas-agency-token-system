@@ -191,10 +191,12 @@ router.get('/export', async (req, res) => {
 // Delete Individual Token
 router.delete('/tokens/:id', async (req, res) => {
     try {
-        await Token.findByIdAndDelete(req.params.id);
-        res.status(200).json({ success: true, message: 'Token deleted' });
+        const token = await Token.findByIdAndDelete(req.params.id);
+        if (!token) return res.status(404).json({ success: false, message: 'Token not found' });
+        res.status(200).json({ success: true, message: 'Token successfully deleted' });
     } catch(err) {
-        res.status(500).json({ success: false });
+        console.error('Individual delete error:', err);
+        res.status(500).json({ success: false, message: err.message });
     }
 });
 
