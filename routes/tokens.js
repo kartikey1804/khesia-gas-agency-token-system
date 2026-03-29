@@ -31,8 +31,10 @@ router.post('/generate', protect, authorize('Admin', 'Staff'), async (req, res) 
         serialNo,
         tokenId,
         qrHash,
+        status: 'GENERATED',
         generatedBy: req.user._id,
       });
+
 
       newTokens.push({ ...token.toObject(), qrImage });
     }
@@ -48,16 +50,17 @@ router.post('/generate', protect, authorize('Admin', 'Staff'), async (req, res) 
 // @desc    Get staff stats
 // @access  Staff, Admin
 router.get('/stats', protect, authorize('Admin', 'Staff'), async (req, res) => {
-    try {
-        const totalIssued = await Token.countDocuments({ status: { $ne: 'GENERATED' } });
+        const activeStatuses = ['PENDING', 'DELIVERED', 'PENDING_APPROVAL'];
+        const totalIssued = await Token.countDocuments({ status: { $in: activeStatuses } });
         const startOfDay = new Date();
         startOfDay.setHours(0,0,0,0);
         const issuedToday = await Token.countDocuments({ 
             createdAt: { $gte: startOfDay }, 
-            status: { $ne: 'GENERATED' } 
+            status: { $in: activeStatuses } 
         });
         const pending = await Token.countDocuments({ status: 'PENDING' });
         res.status(200).json({ success: true, stats: { totalIssued, issuedToday, pending } });
+
     } catch(err) {
         res.status(500).json({ success: false });
     }

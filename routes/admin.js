@@ -40,19 +40,20 @@ router.get('/users', async (req, res) => {
 
 // Admin Dashboard Stats
 router.get('/stats', async (req, res) => {
-    try {
-        const total = await Token.countDocuments({ status: { $ne: 'GENERATED' } });
+        const activeStatuses = ['PENDING', 'DELIVERED', 'PENDING_APPROVAL'];
+        const total = await Token.countDocuments({ status: { $in: activeStatuses } });
         const startOfDay = new Date();
         startOfDay.setHours(0,0,0,0);
         const issuedToday = await Token.countDocuments({ 
             createdAt: { $gte: startOfDay }, 
-            status: { $ne: 'GENERATED' } 
+            status: { $in: activeStatuses } 
         });
         const deliveredToday = await Token.countDocuments({ status: 'DELIVERED', deliveryTimestamp: { $gte: startOfDay } });
         const pending = await Token.countDocuments({ status: 'PENDING' });
         const dueApproval = await Token.countDocuments({ status: 'PENDING_APPROVAL' });
 
         res.status(200).json({ success: true, stats: { total, issuedToday, deliveredToday, pending, dueApproval } });
+
     } catch(err) {
         res.status(500).json({ success: false });
     }
