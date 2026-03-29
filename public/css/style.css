@@ -424,6 +424,16 @@ button {
 }
 
 @media (max-width: 600px) {
+    .circular-stats-container {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 15px;
+        justify-items: center;
+        padding: 10px;
+    }
+    .circular-stat {
+        width: 140px !important;
+        height: 140px !important;
+    }
     .glass-table thead { display: none; }
     .glass-table tr { 
         display: block; 

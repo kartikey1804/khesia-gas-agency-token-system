@@ -33,7 +33,7 @@ router.put('/deliver', protect, authorize('Admin', 'Staff', 'Delivery'), async (
     const { tokenId, qrHash, deliveryBoyName } = req.body;
 
     const token = await Token.findOneAndUpdate(
-      { tokenId, qrHash, status: 'PENDING' },
+      { tokenId, qrHash, status: { $in: ['PENDING', 'PENDING_APPROVAL', 'UPDATE_PENDING'] } },
       { 
         $set: { 
           status: 'DELIVERED', 
