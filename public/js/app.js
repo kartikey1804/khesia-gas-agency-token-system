@@ -92,7 +92,8 @@ const app = {
         const sidebarLinks = document.getElementById('sidebar-links');
         const userInfo = document.getElementById('nav-user-info');
         
-        userInfo.innerHTML = `<span style="color:var(--primary)">${this.user.username}</span>`;
+        const username = this.user?.username || 'User';
+        userInfo.innerHTML = `<span style="color:var(--primary)">${username}</span>`;
         
         let links = '';
         if (this.user.role === 'Admin') {
@@ -146,7 +147,18 @@ const app = {
         await this.stopScanner();
         this.scanner = new Html5Qrcode(elementId);
         
-        const config = { fps: 10, qrbox: { width: 280, height: 280 } };
+        // Responsive qrbox: 70% of the smaller dimension
+        const qrboxFunction = (viewfinderWidth, viewfinderHeight) => {
+            const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+            const size = Math.floor(minEdge * 0.7);
+            return { width: size, height: size };
+        };
+
+        const config = { 
+            fps: 20, 
+            qrbox: qrboxFunction,
+            aspectRatio: 1.0
+        };
         
         try {
             const cameraId = await this.getBestCamera();
