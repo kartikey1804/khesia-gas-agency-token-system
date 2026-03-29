@@ -688,10 +688,20 @@ const app = {
             printArea.appendChild(pageDiv);
         }
         
-        // Short delay to ensure Data URLs (QR Codes) are fully rendered by the browser
-        setTimeout(() => {
-            window.print();
-        }, 500);
+        // Wait for all QR images to be fully decoded by the browser
+        const images = Array.from(printArea.querySelectorAll('img.token-print-qr'));
+        const decodePromises = images.map(img => {
+            // Some older browsers might not support img.decode()
+            if (img.decode) return img.decode().catch(e => console.warn("Image decode wait failed", e));
+            return Promise.resolve();
+        });
+
+        Promise.all(decodePromises).then(() => {
+            // Mandatory 1s delay as a safety net for print preview generation
+            setTimeout(() => {
+                window.print();
+            }, 1000);
+        });
     },
 
     async handleStaffFill(e) {

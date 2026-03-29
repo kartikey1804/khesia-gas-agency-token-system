@@ -25,7 +25,15 @@ router.post('/generate', protect, authorize('Admin', 'Staff'), async (req, res) 
       const qrHash = generateQRHash(tokenId, serialNo);
 
       const tokenStr = `KINDANE|${tokenId}|${serialNo}|${qrHash}`;
-      const qrImage = await QRCode.toDataURL(tokenStr);
+      const qrImage = await QRCode.toDataURL(tokenStr, {
+        errorCorrectionLevel: 'H',
+        scale: 8,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#ffffff'
+        }
+      });
 
       const token = await Token.create({
         serialNo,
