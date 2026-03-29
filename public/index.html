@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khesia Gas Agency Token System</title>
+    <title>Khesia Indane Token System</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4ade80">
     <link rel="stylesheet" href="css/style.css">
@@ -13,7 +13,7 @@
 </head>
 <body>
     <nav id="navbar" class="glass-nav hidden">
-        <div class="logo">KHESIA GAS</div>
+        <div class="logo">KHESIA INDANE</div>
         <ul id="nav-links">
             <!-- Nav links injected by JS -->
         </ul>
@@ -45,9 +45,10 @@
             <div class="dashboard-header">
                 <h2>Admin Dashboard</h2>
                 <div class="actions">
+                    <button class="btn-primary" onclick="app.openVerifyScanner()">Verify Token</button>
                     <button class="btn-secondary" onclick="app.exportExcel('daily')">Daily Report</button>
                     <button class="btn-secondary" onclick="app.exportExcel('monthly')">Monthly Report</button>
-                    <button class="btn-primary" onclick="app.showCreateUserModal()">+ New User</button>
+                    <button class="btn-primary" onclick="app.showModal('create-user-modal')">+ New User</button>
                 </div>
             </div>
             
@@ -114,6 +115,7 @@
                 <div class="staff-modes">
                     <button class="btn-primary" onclick="app.switchStaffMode('generate')">Generate Tokens</button>
                     <button class="btn-secondary" onclick="app.switchStaffMode('scan')">Scan & Fill Data</button>
+                    <button class="btn-success" onclick="app.switchStaffMode('deliver')">Scan & Deliver</button>
                 </div>
             </div>
 
@@ -234,6 +236,30 @@
                 </form>
             </div>
         </div>
+
+        <div id="verify-modal" class="modal hidden">
+            <div class="modal-content glass-card" style="max-width: 500px;">
+                <h3>Verify Token Status</h3>
+                <div id="admin-verify-qr-reader" class="qr-reader"></div>
+                <div id="admin-verify-result" class="mg-t-20" style="text-align: left; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px;"></div>
+                <button class="btn-secondary mg-t-20" onclick="app.closeModal()">Close</button>
+            </div>
+        </div>
+
+        <div id="success-tick-overlay" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center;">
+           <div class="tick-container" style="text-align: center;">
+               <div class="success-checkmark">
+                  <div class="check-icon">
+                    <span class="icon-line line-tip"></span>
+                    <span class="icon-line line-long"></span>
+                    <div class="icon-circle"></div>
+                    <div class="icon-fix"></div>
+                  </div>
+                </div>
+               <h2 id="success-message" style="color:white; margin-top:20px; font-size: 2rem;">Success!</h2>
+           </div>
+        </div>
+    </div>
     </main>
 
     <!-- PRINT TEMPLATE -->

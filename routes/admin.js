@@ -117,6 +117,24 @@ router.put('/tokens/:id/manual-deliver', async (req, res) => {
     }
 });
 
+// Admin Verify Scan (Recheck regardless of status)
+router.get('/verify/:data', async (req, res) => {
+    try {
+        const dataStr = Buffer.from(req.params.data, 'base64').toString('ascii');
+        const parts = dataStr.split('|');
+        if (parts.length !== 4 || parts[0] !== 'KINDANE') {
+           return res.status(400).json({ success: false, message: 'Invalid QR format' });
+        }
+        const [_, tokenId, serialNo, qrHash] = parts;
+        const token = await Token.findOne({ tokenId, qrHash });
+        if (!token) return res.status(404).json({ success: false, message: 'Token not found' });
+        
+        res.status(200).json({ success: true, token });
+    } catch(err) {
+        res.status(500).json({ success: false });
+    }
+});
+
 // Export Excel
 router.get('/export', async (req, res) => {
     try {

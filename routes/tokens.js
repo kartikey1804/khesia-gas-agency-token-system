@@ -13,12 +13,10 @@ const generateUniqueId = () => Math.random().toString(36).substr(2, 9);
 // @access  Staff, Admin
 router.post('/generate', protect, authorize('Admin', 'Staff'), async (req, res) => {
   try {
-    const { count = 1 } = req.body;
-    let lastToken = await Token.findOne().sort({ createdAt: -1 });
-    // Rule: after daily 1st entry done as sometimes today i generated 100 but my quota gets full tomorrow i will generate from 1
-    // For simplicity, we just use a running counter or if it's a new day, we can reset. The requirement says:
-    // "start from 101 if quota not full tomorrow, else start from 1". We'll just auto-increment from last.
-    let startSerial = lastToken ? lastToken.serialNo + 1 : 1;
+    const { count = 1, startFromOne = false } = req.body;
+    let lastToken = await Token.findOne().sort({ serialNo: -1 });
+    
+    let startSerial = (lastToken && !startFromOne) ? lastToken.serialNo + 1 : 1;
     
     const newTokens = [];
     for (let i = 0; i < count; i++) {
@@ -26,7 +24,7 @@ router.post('/generate', protect, authorize('Admin', 'Staff'), async (req, res) 
       const tokenId = generateUniqueId();
       const qrHash = generateQRHash(tokenId, serialNo);
 
-      const tokenStr = `KHESIA|${tokenId}|${serialNo}|${qrHash}`;
+      const tokenStr = `KINDANE|${tokenId}|${serialNo}|${qrHash}`;
       const qrImage = await QRCode.toDataURL(tokenStr);
 
       const token = await Token.create({
@@ -115,10 +113,10 @@ router.post('/fill', protect, authorize('Admin', 'Staff'), async (req, res) => {
 // @access  Staff, Delivery
 router.get('/scan/:data', protect, async (req, res) => {
   try {
-     const dataStr = Buffer.from(req.params.data, 'base64').toString('ascii'); // Assume base64 encoded to avoid url issues
-     // Format: KHESIA|TOKEN_ID|SERIAL_NO|HASH
+     const dataStr = Buffer.from(req.params.data, 'base64').toString('ascii'); 
+     // Format: KINDANE|TOKEN_ID|SERIAL_NO|HASH
      const parts = dataStr.split('|');
-     if (parts.length !== 4 || parts[0] !== 'KHESIA') {
+     if (parts.length !== 4 || parts[0] !== 'KINDANE') {
         return res.status(400).json({ success: false, message: 'Invalid QR format' });
      }
      const [_, tokenId, serialNo, qrHash] = parts;

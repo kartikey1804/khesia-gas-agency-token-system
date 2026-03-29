@@ -3,6 +3,7 @@ const API_URL = '/api';
 const app = {
     user: null,
     html5QrcodeScanner: null,
+    startFromOne: false,
 
     init() {
         const token = localStorage.getItem('token');
@@ -64,15 +65,21 @@ const app = {
             this.loadAdminStats();
             this.loadAdminTokens();
             this.loadAdminUsers();
-        } else if (this.user.role === 'Staff') {
+        } else if (this.user.role === 'Staff' || this.user.role === 'Staff_Arvind') {
             this.showView('staff-view');
             this.loadStaffStats();
             this.switchStaffMode('generate');
+            this.askSerialPreference();
         } else if (this.user.role === 'Delivery') {
             this.showView('delivery-view');
             this.loadDeliveryStats();
             this.initDeliveryScanner();
         }
+    },
+
+    askSerialPreference() {
+        const pref = confirm('Do you want to start Serial Numbers from 1 today?\n\nOK for START FROM 1\nCancel for CONTINUE FROM LAST');
+        this.startFromOne = pref;
     },
 
     renderNav() {
@@ -182,9 +189,10 @@ const app = {
         
         try {
             await axios.put(`${API_URL}/admin/tokens/${id}/manual-deliver`, { reason });
-            alert('Token successfully marked as delivered manually.');
-            this.loadAdminStats();
-            this.loadAdminTokens();
+            this.showSuccess('Manual delivery saved!', () => {
+                this.loadAdminStats();
+                this.loadAdminTokens();
+            });
         } catch(err) { alert(err.response?.data?.message || 'Manual delivery failed'); }
     },
 
@@ -192,8 +200,8 @@ const app = {
         window.open(`${API_URL}/admin/export?reportType=${type}&token=${localStorage.getItem('token')}`, '_blank');
     },
 
-    showCreateUserModal() { document.getElementById('create-user-modal').classList.remove('hidden'); },
-    closeModal() { document.getElementById('create-user-modal').classList.add('hidden'); },
+    showModal(id) { document.getElementById(id).classList.remove('hidden'); },
+    closeModal() { document.querySelectorAll('.modal').forEach(el => el.classList.add('hidden')); this.stopScanner(); },
 
     async handleCreateUser(e) {
         e.preventDefault();
@@ -205,6 +213,30 @@ const app = {
             this.loadAdminUsers();
             e.target.reset();
         } catch(err) { alert('Failed to create user'); }
+    },
+
+    openVerifyScanner() {
+        this.showModal('verify-modal');
+        document.getElementById('admin-verify-result').innerHTML = 'Ready to scan...';
+        this.startScanner('admin-verify-qr-reader', async (decodedText) => {
+            try {
+                const encoded = btoa(decodedText);
+                const res = await axios.get(`${API_URL}/admin/verify/${encoded}`);
+                if (res.data.success) {
+                    const t = res.data.token;
+                    document.getElementById('admin-verify-result').innerHTML = `
+                        <p><strong>Status:</strong> <span style="color:var(--primary)">${t.status}</span></p>
+                        <p><strong>Consumer:</strong> ${t.consumerName || 'N/A'}</p>
+                        <p><strong>Contact:</strong> ${t.contactNo || 'N/A'}</p>
+                        <p><strong>Token ID:</strong> ${t.tokenId}</p>
+                        <p><strong>Serial:</strong> ${t.serialNo}</p>
+                    `;
+                    // Redirect or Success Tick? For verify, we just show data.
+                }
+            } catch(err) {
+                document.getElementById('admin-verify-result').innerHTML = '<p style="color:var(--danger)">Invalid or not found.</p>';
+            }
+        });
     },
 
     // --- STAFF METHODS ---
@@ -223,9 +255,13 @@ const app = {
         if (mode === 'generate') {
             document.getElementById('staff-generate-subview').classList.add('active');
             this.stopScanner();
-        } else {
+        } else if (mode === 'scan') {
             document.getElementById('staff-scan-subview').classList.add('active');
             this.initStaffScanner();
+        } else if (mode === 'deliver') {
+            this.showView('delivery-view'); // Re-use delivery view logic
+            this.loadDeliveryStats();
+            this.initDeliveryScanner();
         }
     },
 
@@ -235,9 +271,12 @@ const app = {
         try {
             btn.innerText = 'Generating...';
             btn.disabled = true;
-            const res = await axios.post(`${API_URL}/tokens/generate`, { count });
+            const res = await axios.post(`${API_URL}/tokens/generate`, { count, startFromOne: this.startFromOne });
             if (res.data.success) {
                 this.printTokens(res.data.tokens);
+                this.showSuccess('Tokens Generated!', () => {
+                    this.loadStaffStats();
+                });
             }
         } catch(err) { 
             alert('Failed to generate tokens'); 
@@ -254,14 +293,12 @@ const app = {
         tokens.forEach(t => {
             printArea.innerHTML += `
                 <div class="token-print-card">
-                    <h1>KHESIA GAS AGENCY</h1>
+                    <h1>KHESIA INDANE</h1>
                     <h3>Token #${t.serialNo}</h3>
                     <img src="${t.qrImage}" alt="QR">
-                    <p style="font-size: 10px; color: #555;">ID: ${t.tokenId}</p>
-                    <div class="space"></div>
-                    <div class="footer">
-                        <span>Staple Here</span>
-                        <span>Signature</span>
+                    <p>ID: ${t.tokenId}</p>
+                    <div style="margin-top:2mm; border-top:1px dashed #ccc; padding-top:1mm;">
+                        <span style="font-size:7pt">Sign: __________</span>
                     </div>
                 </div>
             `;
@@ -274,8 +311,6 @@ const app = {
         this.startScanner('staff-qr-reader', async (decodedText) => {
             this.stopScanner();
             try {
-                // To safely pass through URL, better to base64 encode or just use normal if safe.
-                // We base64 encode the string on frontend before sending to API 
                 const encoded = btoa(decodedText);
                 const res = await axios.get(`${API_URL}/tokens/scan/${encoded}`);
                 
@@ -289,6 +324,7 @@ const app = {
                     
                     document.getElementById('staff-scan-subview').classList.remove('active');
                     document.getElementById('staff-fill-subview').classList.add('active');
+                    document.getElementById('staff-fill-subview').classList.remove('hidden');
                     
                     document.getElementById('fill-token-id').innerText = token.tokenId;
                     document.getElementById('fill-serial-no').innerText = token.serialNo;
@@ -322,9 +358,11 @@ const app = {
             btn.innerText = 'Submitting...';
             btn.disabled = true;
             const res = await axios.post(`${API_URL}/tokens/fill`, data);
-            alert(res.data.message);
-            document.getElementById('fill-data-form').reset();
-            this.switchStaffMode('generate');
+            this.showSuccess(res.data.message, () => {
+                document.getElementById('fill-data-form').reset();
+                this.showView(this.user.role === 'Admin' ? 'admin-view' : 'staff-view');
+                if(this.user.role !== 'Admin') this.switchStaffMode('generate');
+            });
         } catch(err) {
             alert(err.response?.data?.message || 'Failed to fill data');
         } finally {
@@ -369,12 +407,12 @@ const app = {
         this.currentDeliveryData = null;
 
         this.startScanner('delivery-qr-reader', async (decodedText) => {
-            this.stopScanner();
             try {
                 const encoded = btoa(decodedText);
                 const res = await axios.get(`${API_URL}/tokens/scan/${encoded}`);
                 
                 if (res.data.success) {
+                    this.stopScanner();
                     const token = res.data.token;
                     this.currentDeliveryData = token;
                     
@@ -388,7 +426,6 @@ const app = {
                 }
             } catch(err) {
                 alert(err.response?.data?.message || 'Invalid QR Code');
-                this.initDeliveryScanner();
             }
         });
     },
@@ -400,9 +437,10 @@ const app = {
                 tokenId: this.currentDeliveryData.tokenId,
                 qrHash: this.currentDeliveryData.qrHash
             });
-            alert('Marked as Delivered!');
-            this.loadDeliveryStats();
-            this.initDeliveryScanner();
+            this.showSuccess('Delivered!', () => {
+                this.loadDeliveryStats();
+                this.initDeliveryScanner();
+            });
         } catch(err) {
             alert(err.response?.data?.message || 'Failed to mark as delivered');
             this.initDeliveryScanner();
@@ -413,11 +451,32 @@ const app = {
         this.initDeliveryScanner();
     },
 
+    showSuccess(msg, next) {
+        const overlay = document.getElementById('success-tick-overlay');
+        const message = document.getElementById('success-message');
+        message.innerText = msg;
+        overlay.classList.remove('hidden');
+        setTimeout(() => {
+            overlay.classList.add('hidden');
+            if(next) next();
+        }, 1500);
+    },
+
     // --- SCANNER UTILS ---
     startScanner(elementId, onSuccess) {
         this.stopScanner();
-        this.html5QrcodeScanner = new Html5QrcodeScanner(elementId, { fps: 10, qrbox: {width: 250, height: 250} }, false);
-        this.html5QrcodeScanner.render(onSuccess, (err) => { /* Ignore errors during scanning */ });
+        // Force environment (back) camera
+        const config = { 
+            fps: 10, 
+            qrbox: {width: 250, height: 250},
+            rememberLastUsedCamera: true,
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+        };
+        this.html5QrcodeScanner = new Html5QrcodeScanner(elementId, config, false);
+        this.html5QrcodeScanner.render(onSuccess, (err) => {});
+        
+        // Auto-select back camera if possible after some delay (Html5QrcodeScanner limitation)
+        // Note: The library usually picks back camera by default for "environment".
     },
 
     stopScanner() {
