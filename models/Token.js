@@ -10,7 +10,7 @@ const tokenSchema = new mongoose.Schema({
   consumerNo: { type: String },
   expectedDeliveryDate: { type: Date },
   nextDueDays: { type: Number, enum: [25, 35, 45] },
-  status: { type: String, enum: ['PENDING', 'DELIVERED', 'PENDING_APPROVAL'], default: 'PENDING' },
+  status: { type: String, enum: ['GENERATED', 'PENDING', 'DELIVERED', 'PENDING_APPROVAL'], default: 'GENERATED' },
   deliveryTimestamp: { type: Date },
   deliveryBoyName: { type: String },
   adminApproved: { type: Boolean, default: false },

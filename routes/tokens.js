@@ -49,10 +49,13 @@ router.post('/generate', protect, authorize('Admin', 'Staff'), async (req, res) 
 // @access  Staff, Admin
 router.get('/stats', protect, authorize('Admin', 'Staff'), async (req, res) => {
     try {
-        const totalIssued = await Token.countDocuments();
+        const totalIssued = await Token.countDocuments({ status: { $ne: 'GENERATED' } });
         const startOfDay = new Date();
         startOfDay.setHours(0,0,0,0);
-        const issuedToday = await Token.countDocuments({ createdAt: { $gte: startOfDay } });
+        const issuedToday = await Token.countDocuments({ 
+            createdAt: { $gte: startOfDay }, 
+            status: { $ne: 'GENERATED' } 
+        });
         const pending = await Token.countDocuments({ status: 'PENDING' });
         res.status(200).json({ success: true, stats: { totalIssued, issuedToday, pending } });
     } catch(err) {

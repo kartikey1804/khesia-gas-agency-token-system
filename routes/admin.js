@@ -41,10 +41,13 @@ router.get('/users', async (req, res) => {
 // Admin Dashboard Stats
 router.get('/stats', async (req, res) => {
     try {
-        const total = await Token.countDocuments();
+        const total = await Token.countDocuments({ status: { $ne: 'GENERATED' } });
         const startOfDay = new Date();
         startOfDay.setHours(0,0,0,0);
-        const issuedToday = await Token.countDocuments({ createdAt: { $gte: startOfDay } });
+        const issuedToday = await Token.countDocuments({ 
+            createdAt: { $gte: startOfDay }, 
+            status: { $ne: 'GENERATED' } 
+        });
         const deliveredToday = await Token.countDocuments({ status: 'DELIVERED', deliveryTimestamp: { $gte: startOfDay } });
         const pending = await Token.countDocuments({ status: 'PENDING' });
         const dueApproval = await Token.countDocuments({ status: 'PENDING_APPROVAL' });
