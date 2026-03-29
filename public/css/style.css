@@ -139,10 +139,9 @@ body {
 }
 
 .sidebar-overlay.active { display: block; }
-    cursor: pointer;
-}
 
 #nav-links li a:hover {
+
     color: var(--primary);
 }
 

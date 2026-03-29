@@ -200,17 +200,21 @@ const app = {
             res.data.tokens.forEach(t => {
                 const tr = document.createElement('tr');
                 let actionBtn = '';
-                if(t.status === 'PENDING_APPROVAL') {
+                
+                if (t.status === 'UPDATE_PENDING') {
+                    actionBtn = `<button class="btn-primary" onclick="app.openReviewModal('${t._id}')" style="background:var(--secondary); padding: 5px 10px; font-size: 0.8rem;">Review Update</button>`;
+                } else if (t.status === 'PENDING_APPROVAL') {
                     actionBtn = `<button class="btn-success" onclick="app.approveToken('${t._id}')" style="padding: 5px 10px; font-size: 0.8rem; margin-right: 5px;">Approve</button>`;
                 }
-                if(t.status === 'PENDING' && t.consumerName) {
-                    actionBtn += `<button onclick="app.manualDeliverToken('${t._id}')" style="background: var(--warning); padding: 5px 10px; font-size: 0.8rem; border: none; border-radius: 5px; cursor: pointer; color: #000; font-weight: bold;">Manual Deliver</button>`;
+                
+                if (t.status === 'PENDING' && t.consumerName) {
+                    actionBtn += `<button onclick="app.manualDeliverToken('${t._id}')" style="background: var(--warning); padding: 5px 10px; font-size: 0.8rem; border: none; border-radius: 5px; cursor: pointer; color: #000; font-weight: bold; margin-right:5px;">Manual Deliver</button>`;
                 }
-                if(!t.consumerName || t.status === 'GENERATED') {
-                    actionBtn += `<button onclick="app.deleteSingleToken('${t._id}')" style="background: var(--danger); padding: 5px 10px; font-size: 0.8rem; border: none; border-radius: 5px; cursor: pointer; color: #fff; font-weight: bold; margin-left: 5px;">Delete</button>`;
+
+                if (!t.consumerName || t.status === 'GENERATED' || this.user.role === 'Admin') {
+                    actionBtn += `<button onclick="app.deleteSingleToken('${t._id}')" style="background: var(--danger); padding: 5px 10px; font-size: 0.8rem; border: none; border-radius: 5px; cursor: pointer; color: #fff; font-weight: bold;">Delete</button>`;
                 }
                 
-                // Only show checkbox for delatable (unfilled) tokens
                 const checkbox = (!t.consumerName || t.status === 'GENERATED') 
                     ? `<input type="checkbox" class="token-checkbox" value="${t._id}" onclick="app.updateBulkDeleteVisibility()">`
                     : '';
@@ -219,13 +223,57 @@ const app = {
                     <td>${checkbox}</td>
                     <td>${t.serialNo}</td>
                     <td>${t.tokenId}</td>
-                    <td>${t.consumerName || 'Not filled'}</td>
-                    <td><span style="color: ${t.status === 'DELIVERED' ? 'var(--primary)' : t.status === 'PENDING_APPROVAL' ? 'var(--warning)' : t.status === 'GENERATED' ? '#ff5555' : '#fff'}">${t.status}</span></td>
+                    <td>${t.consumerName || 'Not filled'} (${t.status})</td>
+                    <td><span style="color: ${t.status === 'DELIVERED' ? 'var(--primary)' : t.status === 'UPDATE_PENDING' ? '#facc15' : t.status === 'PENDING_APPROVAL' ? 'var(--warning)' : t.status === 'GENERATED' ? '#ff5555' : '#fff'}">${t.status}</span></td>
                     <td>${actionBtn}</td>
                 `;
                 tbody.appendChild(tr);
             });
         } catch(err) {}
+    },
+
+    async openReviewModal(id) {
+        try {
+            const res = await axios.get(`${API_URL}/admin/tokens`);
+            const token = res.data.tokens.find(t => t._id === id);
+            if (!token) return;
+
+            const diff = token.pendingUpdate;
+            const container = document.getElementById('review-diff-container');
+            container.innerHTML = `
+                <div class="review-diff">
+                    <div class="diff-box">
+                        <h4>Current Data</h4>
+                        <p class="diff-item">Name: <span>${token.consumerName}</span></p>
+                        <p class="diff-item">Contact: <span>${token.contactNo}</span></p>
+                        <p class="diff-item">Consumer #: <span>${token.consumerNo}</span></p>
+                        <p class="diff-item">DAC: <span>${token.dacNumber}</span></p>
+                    </div>
+                    <div class="diff-box">
+                        <h4>Proposed Changes</h4>
+                        <p class="diff-item ${token.consumerName !== diff.consumerName ? 'changed' : ''}">Name: <span>${diff.consumerName}</span></p>
+                        <p class="diff-item ${token.contactNo !== diff.contactNo ? 'changed' : ''}">Contact: <span>${diff.contactNo}</span></p>
+                        <p class="diff-item ${token.consumerNo !== diff.consumerNo ? 'changed' : ''}">Consumer #: <span>${diff.consumerNo}</span></p>
+                        <p class="diff-item ${token.dacNumber !== diff.dacNumber ? 'changed' : ''}">DAC: <span>${diff.dacNumber}</span></p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('btn-approve-update').onclick = () => this.processUpdate(id, 'approve');
+            document.getElementById('btn-reject-update').onclick = () => this.processUpdate(id, 'reject');
+            this.showModal('review-update-modal');
+        } catch(err) {}
+    },
+
+    async processUpdate(id, action) {
+        try {
+            const res = await axios.put(`${API_URL}/admin/tokens/${id}/process-update`, { action });
+            this.showSuccess(res.data.message, () => {
+                this.closeModal();
+                this.loadAdminStats();
+                this.loadAdminTokens();
+            });
+        } catch(err) { alert('Action failed'); }
     },
 
     toggleSelectAll(checked) {
@@ -576,6 +624,72 @@ const app = {
             overlay.classList.add('hidden');
             if(next) next();
         }, 1500);
+    },
+    // --- STAFF EDIT ---
+    async findAndEditToken() {
+        const query = prompt('Enter Token ID or Consumer Name:');
+        if (!query) return;
+        try {
+            const res = await axios.get(`${API_URL}/admin/tokens`); 
+            const t = res.data.tokens.find(tk => tk.tokenId === query || tk.consumerName?.toLowerCase().includes(query.toLowerCase()));
+            if (t) {
+                if (t.status === 'DELIVERED') return alert('Cannot edit delivered tokens');
+                if (t.status === 'GENERATED') return alert('Token is unfilled. Please use Scan & Fill.');
+                this.openEditRequestModal(t);
+            } else {
+                alert('Token not found or no access');
+            }
+        } catch(err) {}
+    },
+
+    openEditRequestModal(t) {
+        document.getElementById('edit-req-id').value = t._id;
+        document.getElementById('edit-req-name').value = t.consumerName || '';
+        document.getElementById('edit-req-contact').value = t.contactNo || '';
+        document.getElementById('edit-req-consumer-no').value = t.consumerNo || '';
+        document.getElementById('edit-req-dac').value = t.dacNumber || '';
+        document.getElementById('edit-req-date').value = t.expectedDeliveryDate ? t.expectedDeliveryDate.split('T')[0] : '';
+        document.getElementById('edit-req-due').value = t.nextDueDays || 35;
+        this.showModal('edit-request-modal');
+    },
+
+    async handleEditRequest(e) {
+        e.preventDefault();
+        const id = document.getElementById('edit-req-id').value;
+        const data = {
+            consumerName: document.getElementById('edit-req-name').value,
+            contactNo: document.getElementById('edit-req-contact').value,
+            consumerNo: document.getElementById('edit-req-consumer-no').value,
+            dacNumber: document.getElementById('edit-req-dac').value,
+            expectedDeliveryDate: document.getElementById('edit-req-date').value,
+            nextDueDays: document.getElementById('edit-req-due').value
+        };
+        try {
+            await axios.post(`${API_URL}/tokens/${id}/request-update`, data);
+            this.showSuccess('Change request sent to Admin!', () => {
+                this.closeModal();
+                this.loadStaffStats();
+            });
+        } catch(err) { alert(err.response?.data?.message || 'Request failed'); }
+    },
+
+    init() {
+        const token = localStorage.getItem('token');
+        if (token) {
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            const decoded = JSON.parse(atob(token.split('.')[1]));
+            this.user = decoded;
+            this.showMainLayout();
+        } else {
+            document.getElementById('login-view').classList.add('active');
+        }
+
+        document.getElementById('login-form').addEventListener('submit', this.handleLogin.bind(this));
+        document.getElementById('new-user-form').addEventListener('submit', this.handleCreateUser.bind(this));
+        if (document.getElementById('fill-data-form')) {
+            document.getElementById('fill-data-form').addEventListener('submit', this.handleStaffFill.bind(this));
+        }
+        document.getElementById('edit-request-form').addEventListener('submit', this.handleEditRequest.bind(this));
     }
 };
 
