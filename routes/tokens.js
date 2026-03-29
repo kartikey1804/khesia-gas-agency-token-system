@@ -59,17 +59,28 @@ router.post('/generate', protect, authorize('Admin', 'Staff'), async (req, res) 
 // @access  Staff, Admin
 router.get('/stats', protect, authorize('Admin', 'Staff'), async (req, res) => {
     try {
-        const activeStatuses = ['PENDING', 'DELIVERED', 'PENDING_APPROVAL'];
+        const activeStatuses = ['PENDING', 'DELIVERED', 'PENDING_APPROVAL', 'UPDATE_PENDING'];
         const totalIssued = await Token.countDocuments({ status: { $in: activeStatuses } });
-        const startOfDay = new Date();
-        startOfDay.setHours(0,0,0,0);
+        
+        // India Time (IST) offset is 5.5 hours
+        const now = new Date();
+        const istOffset = 5.5 * 60 * 60 * 1000;
+        const istDate = new Date(now.getTime() + istOffset);
+        istDate.setUTCHours(0, 0, 0, 0);
+        // Correct start of day in UTC for IST 00:00
+        const startOfIstDay = new Date(istDate.getTime() - istOffset);
+
         const issuedToday = await Token.countDocuments({ 
-            filledAt: { $gte: startOfDay }, 
+            filledAt: { $gte: startOfIstDay }, 
             status: { $in: activeStatuses } 
         });
-        const pending = await Token.countDocuments({ status: 'PENDING' });
-        res.status(200).json({ success: true, stats: { totalIssued, issuedToday, pending } });
+        
+        const pending = await Token.countDocuments({ status: { $in: ['PENDING', 'PENDING_APPROVAL', 'UPDATE_PENDING'] } });
+        const unfilled = await Token.countDocuments({ status: 'GENERATED' });
+
+        res.status(200).json({ success: true, stats: { totalIssued, issuedToday, pending, unfilled } });
     } catch(err) {
+        console.error(err);
         res.status(500).json({ success: false });
     }
 });

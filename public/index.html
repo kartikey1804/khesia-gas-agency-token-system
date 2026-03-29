@@ -6,11 +6,11 @@
     <title>Khesia Indane Token System</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4ade80">
-    <link rel="stylesheet" href="css/style.css?v=2.6">
+    <link rel="stylesheet" href="css/style.css?v=2.7">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="js/app.js?v=2.6"></script>
+    <script src="js/app.js?v=2.7"></script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(registrations => {
@@ -214,6 +214,7 @@
                 <div class="circular-stat"><h3 data-i18n="total_issued">Total Issued</h3><p id="staff-stat-total">0</p></div>
                 <div class="circular-stat secondary"><h3 data-i18n="issued_today">Issued Today</h3><p id="staff-stat-today">0</p></div>
                 <div class="circular-stat warning"><h3 data-i18n="pending">Delivery Pending</h3><p id="staff-stat-pending">0</p></div>
+                <div class="circular-stat warning" style="background: linear-gradient(135deg, #64748b, #475569);"><h3 style="color:#cbd5e1">Unscanned Tokens</h3><p id="staff-stat-unfilled" style="color:#f8fafc">0</p></div>
             </div>
 
             <div id="staff-generate-subview" class="subview active">
@@ -447,6 +448,12 @@
         });
       }
     </script>
-    <div style="position:fixed; bottom:5px; right:5px; font-size:10px; color:rgba(255,255,255,0.2); pointer-events:none;">v2.6_latest</div>
+    <div style="position:fixed; bottom:5px; right:5px; font-size:10px; color:rgba(255,255,255,0.2); pointer-events:none;">v2.7_latest</div>
+    
+    <!-- Update Banner -->
+    <div id="update-banner" class="hidden" style="position:fixed; top:70px; left:50%; transform:translateX(-50%); background:var(--danger); color:white; padding:15px 30px; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5); z-index:9999; text-align:center; animation: bounceIn 0.5s;">
+        <p style="margin-bottom:10px; font-weight:bold;">New Version Available!</p>
+        <button class="btn-primary" onclick="app.forceUpdate()" style="background:white; color:var(--danger); border:none; padding:8px 20px; font-weight:800; border-radius:10px;">REFRESH & UPDATE NOW</button>
+    </div>
 </body>
 </html>

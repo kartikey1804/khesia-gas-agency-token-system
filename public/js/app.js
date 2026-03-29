@@ -1,6 +1,7 @@
 const API_URL = '/api';
 
 const app = {
+    version: '2.7',
     user: null,
     scanner: null,
     startFromOne: false,
@@ -116,9 +117,11 @@ const app = {
             this.user = JSON.parse(user);
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             this.showMainLayout();
+            this.startSync(); // Start heartbeat
         } else {
             this.showView('login-view');
         }
+        this.checkVersion();
 
         this.attachEventListeners();
     },
@@ -144,6 +147,7 @@ const app = {
                 this.user = res.data.user;
                 axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
                 this.showMainLayout();
+                this.startSync();
             }
         } catch (err) {
             alert(err.response?.data?.message || 'Login failed');
@@ -580,6 +584,9 @@ const app = {
             document.getElementById('staff-stat-total').innerText = s.totalIssued;
             document.getElementById('staff-stat-today').innerText = s.issuedToday;
             document.getElementById('staff-stat-pending').innerText = s.pending;
+            if(document.getElementById('staff-stat-unfilled')) {
+                document.getElementById('staff-stat-unfilled').innerText = s.unfilled;
+            }
         } catch(err) {
             if (indicator) indicator.classList.add('offline');
         } finally {
