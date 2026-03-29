@@ -92,7 +92,10 @@ router.post('/fill', protect, authorize('Admin', 'Staff'), async (req, res) => {
   try {
     const { tokenId, qrHash, dacNumber, contactNo, consumerName, consumerNo, expectedDeliveryDate, nextDueDays, isEarlyRequest } = req.body;
 
-    if (!dacNumber || !contactNo || !consumerName || !consumerNo || !expectedDeliveryDate || !nextDueDays) {
+    // Temporary lenience for v2.3 clients: Default nextDueDays to 30 if missing
+    const finalNextDueDays = nextDueDays || 30;
+
+    if (!dacNumber || !contactNo || !consumerName || !consumerNo || !expectedDeliveryDate) {
        return res.status(400).json({ success: false, message: 'All fields are required' });
     }
     if (contactNo.length !== 10 || isNaN(contactNo)) {
@@ -105,7 +108,7 @@ router.post('/fill', protect, authorize('Admin', 'Staff'), async (req, res) => {
       consumerName,
       consumerNo,
       expectedDeliveryDate,
-      nextDueDays,
+      nextDueDays: finalNextDueDays,
       status: isEarlyRequest ? 'PENDING_APPROVAL' : 'PENDING',
       filledAt: new Date()
     };
