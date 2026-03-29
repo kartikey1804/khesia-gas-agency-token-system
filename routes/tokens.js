@@ -147,4 +147,16 @@ router.get('/scan/:data', protect, async (req, res) => {
   }
 });
 
+// @route   DELETE /api/tokens/unused
+// @desc    Delete all unused (GENERATED) tokens
+// @access  Staff, Admin
+router.delete('/unused', protect, authorize('Admin', 'Staff'), async (req, res) => {
+    try {
+        const result = await Token.deleteMany({ status: 'GENERATED' });
+        res.status(200).json({ success: true, message: `Deleted ${result.deletedCount} unused tokens.` });
+    } catch(err) {
+        res.status(500).json({ success: false, message: 'Failed to delete' });
+    }
+});
+
 module.exports = router;

@@ -237,6 +237,23 @@ const app = {
                 document.getElementById('admin-verify-result').innerHTML = '<p style="color:var(--danger)">Invalid or not found.</p>';
             }
         });
+    async deleteUnusedTokens() {
+        if(!confirm('Are you sure you want to delete all UNUSED tokens? (Tokens printed but not yet filled with data)')) return;
+        try {
+            const res = await axios.delete(`${API_URL}/tokens/unused`);
+            if (res.data.success) {
+                this.showSuccess(res.data.message, () => {
+                    if (this.user.role === 'Admin') {
+                        this.loadAdminStats();
+                        this.loadAdminTokens();
+                    } else {
+                        this.loadStaffStats();
+                    }
+                });
+            }
+        } catch(err) {
+            alert(err.response?.data?.message || 'Deletion failed');
+        }
     },
 
     // --- STAFF METHODS ---
