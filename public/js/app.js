@@ -125,16 +125,28 @@ const app = {
                 if(t.status === 'PENDING') {
                     actionBtn += `<button onclick="app.manualDeliverToken('${t._id}')" style="background: var(--warning); padding: 5px 10px; font-size: 0.8rem; border: none; border-radius: 5px; cursor: pointer; color: #000; font-weight: bold;">Manual Deliver</button>`;
                 }
+                if(t.status === 'GENERATED') {
+                    actionBtn += `<button onclick="app.deleteSingleToken('${t._id}')" style="background: var(--danger); padding: 5px 10px; font-size: 0.8rem; border: none; border-radius: 5px; cursor: pointer; color: #fff; font-weight: bold; margin-left: 5px;">Delete</button>`;
+                }
                 tr.innerHTML = `
                     <td>${t.serialNo}</td>
                     <td>${t.tokenId}</td>
                     <td>${t.consumerName || 'Not filled'}</td>
-                    <td><span style="color: ${t.status === 'DELIVERED' ? 'var(--primary)' : t.status === 'PENDING_APPROVAL' ? 'var(--warning)' : '#fff'}">${t.status}</span></td>
+                    <td><span style="color: ${t.status === 'DELIVERED' ? 'var(--primary)' : t.status === 'PENDING_APPROVAL' ? 'var(--warning)' : t.status === 'GENERATED' ? '#ff5555' : '#fff'}">${t.status}</span></td>
                     <td>${actionBtn}</td>
                 `;
                 tbody.appendChild(tr);
             });
         } catch(err) {}
+    },
+
+    async deleteSingleToken(id) {
+        if(!confirm('Delete this unused token?')) return;
+        try {
+            await axios.delete(`${API_URL}/admin/tokens/${id}`);
+            this.loadAdminStats();
+            this.loadAdminTokens();
+        } catch(err) { alert('Failed to delete token'); }
     },
 
     async loadAdminUsers() {

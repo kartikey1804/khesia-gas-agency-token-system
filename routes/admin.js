@@ -188,6 +188,16 @@ router.get('/export', async (req, res) => {
     }
 });
 
+// Delete Individual Token
+router.delete('/tokens/:id', async (req, res) => {
+    try {
+        await Token.findByIdAndDelete(req.params.id);
+        res.status(200).json({ success: true, message: 'Token deleted' });
+    } catch(err) {
+        res.status(500).json({ success: false });
+    }
+});
+
 // Delete User
 router.delete('/users/:id', async (req, res) => {
     try {
