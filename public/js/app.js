@@ -571,13 +571,20 @@ const app = {
 
     // --- STAFF METHODS ---
     async loadStaffStats() {
+        const indicator = document.getElementById('sync-indicator');
         try {
+            if (indicator) indicator.classList.add('syncing');
             const res = await axios.get(`${API_URL}/tokens/stats`);
+            if (indicator) indicator.classList.remove('offline');
             const s = res.data.stats;
             document.getElementById('staff-stat-total').innerText = s.totalIssued;
             document.getElementById('staff-stat-today').innerText = s.issuedToday;
             document.getElementById('staff-stat-pending').innerText = s.pending;
-        } catch(err) {}
+        } catch(err) {
+            if (indicator) indicator.classList.add('offline');
+        } finally {
+            if (indicator) setTimeout(() => indicator.classList.remove('syncing'), 500);
+        }
     },
 
     switchStaffMode(mode) {
@@ -696,8 +703,11 @@ const app = {
 
     // --- DELIVERY METHODS ---
     async loadDeliveryStats() {
+        const indicator = document.getElementById('sync-indicator');
         try {
+            if (indicator) indicator.classList.add('syncing');
             const res = await axios.get(`${API_URL}/delivery/dashboard`);
+            if (indicator) indicator.classList.remove('offline');
             const data = res.data;
             document.getElementById('del-stat-done').innerText = data.deliveredToday;
             document.getElementById('del-stat-pending').innerText = data.pendingTodayList.length;
@@ -716,7 +726,11 @@ const app = {
                     `;
                 });
             }
-        } catch(err) {}
+        } catch(err) {
+            if (indicator) indicator.classList.add('offline');
+        } finally {
+            if (indicator) setTimeout(() => indicator.classList.remove('syncing'), 500);
+        }
     },
 
     initDeliveryScanner() {

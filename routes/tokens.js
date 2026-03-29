@@ -80,33 +80,26 @@ router.post('/fill', protect, authorize('Admin', 'Staff'), async (req, res) => {
        return res.status(400).json({ success: false, message: 'Contact number must be exactly 10 digits' });
     }
 
-    const token = await Token.findOne({ tokenId, qrHash });
+    const updateData = {
+      dacNumber,
+      contactNo,
+      consumerName,
+      consumerNo,
+      expectedDeliveryDate,
+      nextDueDays,
+      status: isEarlyRequest ? 'PENDING_APPROVAL' : 'PENDING',
+      filledAt: new Date()
+    };
+
+    const token = await Token.findOneAndUpdate(
+      { tokenId, qrHash, status: 'GENERATED' },
+      { $set: updateData },
+      { new: true }
+    );
+
     if (!token) {
-      return res.status(404).json({ success: false, message: 'Invalid or not found Token' });
+      return res.status(400).json({ success: false, message: 'Token already filled or invalid' });
     }
-
-    if (token.consumerName) {
-      return res.status(400).json({ success: false, message: 'Token is already filled' });
-    }
-
-    let status = 'PENDING';
-    let adminApproved = false;
-
-    if (isEarlyRequest) {
-      status = 'PENDING_APPROVAL'; // Or block
-    }
-
-    token.dacNumber = dacNumber;
-    token.contactNo = contactNo;
-    token.consumerName = consumerName;
-    token.consumerNo = consumerNo;
-    token.expectedDeliveryDate = expectedDeliveryDate;
-    token.nextDueDays = nextDueDays;
-    token.status = status;
-    token.adminApproved = adminApproved;
-    token.filledAt = new Date();
-
-    await token.save();
 
     res.status(200).json({ success: true, token, message: isEarlyRequest ? 'Admin Approval Required' : 'Token filled successfully' });
   } catch (err) {

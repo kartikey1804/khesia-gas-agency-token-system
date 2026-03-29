@@ -32,24 +32,21 @@ router.put('/deliver', protect, authorize('Admin', 'Staff', 'Delivery'), async (
   try {
     const { tokenId, qrHash, deliveryBoyName } = req.body;
 
-    const token = await Token.findOne({ tokenId, qrHash });
+    const token = await Token.findOneAndUpdate(
+      { tokenId, qrHash, status: 'PENDING' },
+      { 
+        $set: { 
+          status: 'DELIVERED', 
+          deliveryTimestamp: new Date(), 
+          deliveryBoyName: deliveryBoyName || req.user.username 
+        } 
+      },
+      { new: true }
+    );
+
     if (!token) {
-      return res.status(404).json({ success: false, message: 'Invalid or not found Token' });
+      return res.status(400).json({ success: false, message: 'Token not ready for delivery or already delivered' });
     }
-
-    if (token.status === 'DELIVERED') {
-      return res.status(400).json({ success: false, message: 'Gas already delivered for this token' });
-    }
-
-    if (token.status === 'PENDING_APPROVAL') {
-      return res.status(400).json({ success: false, message: 'Delivery requires Admin approval first' });
-    }
-
-    token.status = 'DELIVERED';
-    token.deliveryTimestamp = new Date();
-    token.deliveryBoyName = deliveryBoyName || req.user.username;
-
-    await token.save();
 
     res.status(200).json({ success: true, message: 'Delivery marked successfully', token });
   } catch (err) {
