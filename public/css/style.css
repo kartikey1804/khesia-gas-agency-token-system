@@ -40,6 +40,32 @@ body {
     z-index: 100;
 }
 
+/* Switch Toggle */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute; cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(255,255,255,0.1);
+  transition: .4s; border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.slider:before {
+  position: absolute; content: "";
+  height: 18px; width: 18px; left: 3px; bottom: 2px;
+  background-color: white; transition: .4s; border-radius: 50%;
+}
+input:checked + .slider { background-color: var(--primary); border-color: var(--primary); }
+input:checked + .slider:before { transform: translateX(20px); }
+
+.nav-user-info {
+ display: flex; align-items: center; gap: 1rem; }
+
 .nav-left { display: flex; align-items: center; gap: 1rem; }
 
 .hamburger-btn {
@@ -536,6 +562,20 @@ button {
         padding: 0 !important;
         background: white;
         overflow: hidden !important;
+    }
+
+    .printable-token {
+        width: 100%;
+        height: auto;
+        min-height: 4.5in;
+        page-break-inside: avoid;
+        margin-bottom: 0px;
+        border-bottom: 1px dashed #ccc;
+        padding: 15px;
+    }
+    .printable-token:nth-child(6n) {
+        page-break-after: always;
+        border-bottom: none;
     }
 
     .token-print-card {

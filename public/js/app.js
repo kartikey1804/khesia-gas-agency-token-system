@@ -634,22 +634,13 @@ const app = {
 
     async generateTokens() {
         const count = document.getElementById('token-count').value;
-        const btn = document.querySelector('#staff-generate-subview .btn-primary');
+        const startFromOne = document.getElementById('start-from-one').checked;
         try {
-            btn.innerText = 'Generating...';
-            btn.disabled = true;
-            const res = await axios.post(`${API_URL}/tokens/generate`, { count, startFromOne: this.startFromOne });
-            if (res.data.success) {
-                this.printTokens(res.data.tokens);
-                this.showSuccess('Tokens Generated!', () => {
-                    this.loadStaffStats();
-                });
-            }
+            const res = await axios.post(`${API_URL}/tokens/generate`, { count, startFromOne });
+            this.printTokens(res.data.tokens);
+            this.loadStaffStats();
         } catch(err) { 
             alert('Failed to generate tokens'); 
-        } finally {
-            btn.innerText = 'Generate & Print';
-            btn.disabled = false;
         }
     },
 
@@ -657,19 +648,19 @@ const app = {
         const printArea = document.getElementById('print-area');
         printArea.innerHTML = '';
         tokens.forEach(t => {
-            printArea.innerHTML += `
-                <div class="token-print-card">
-                    <div class="token-header">KHESIA INDANE</div>
-                    <div class="token-body">
-                        <div class="token-info"><h3>Token #${t.serialNo}</h3><p>ID: ${t.tokenId}</p></div>
-                        <img src="${t.qrImage}" class="token-qr">
-                    </div>
-                    <div class="token-footer">
-                        <div class="stamp-box">Stamp</div>
-                        <div class="signature-area"><div></div><span>Signature</span></div>
+            const div = document.createElement('div');
+            div.className = 'printable-token';
+            div.innerHTML = `
+                <div style="border:2px solid #000; padding:15px; background:white; color:black; text-align:center;">
+                    <h2 style="margin:0; font-size:1.4rem;">QR TOKEN: #${t.serialNo}</h2>
+                    <img src="${t.qrImage}" style="width:180px; height:180px; margin:10px 0;">
+                    <div style="font-size:1.1rem; border-top:1px solid #000; padding-top:10px;">
+                        <p><strong>TOKEN ID:</strong> ${t.tokenId}</p>
+                        <p style="margin-top:5px; font-size:0.9rem;">Scan to Register / Confirm Delivery</p>
                     </div>
                 </div>
             `;
+            printArea.appendChild(div);
         });
         window.print();
     },
@@ -754,6 +745,32 @@ const app = {
                 document.getElementById('btn-confirm-delivery').onclick = () => this.confirmDelivery(t.tokenId, t.qrHash);
             }
         } catch (err) { alert(err.response?.data?.message || 'Invalid or expired token'); }
+    },
+
+    async handleManualDelivery() {
+        const tokenId = document.getElementById('manual-token-id').value.trim();
+        if (!tokenId || tokenId.length < 5) return alert('Please enter a valid Token ID');
+        
+        try {
+            // We use the same scan endpoint since it takes base64 data. 
+            // format of our scan data: KINDANE|TOKEN_ID|SERIAL_NO|HASH
+            // However, the scan endpoint expects specific format. 
+            // Better to add a dedicated simple search or just warn the user.
+            // Actually, we can fetch token directly by ID for delivery search.
+            const res = await axios.get(`${API_URL}/tokens/scan-manual/${tokenId}`);
+            if (res.data.success) {
+                const t = res.data.token;
+                document.getElementById('delivery-scan-card').classList.add('hidden');
+                document.getElementById('delivery-action-card').classList.remove('hidden');
+                document.getElementById('del-consumer-name').innerText = t.consumerName;
+                document.getElementById('del-contact-no').innerText = t.contactNo;
+                document.getElementById('del-expected-date').innerText = new Date(t.expectedDeliveryDate).toLocaleDateString();
+                document.getElementById('del-status').innerText = t.status;
+                document.getElementById('btn-confirm-delivery').onclick = () => this.confirmDelivery(t.tokenId, t.qrHash);
+            }
+        } catch (err) {
+            alert(err.response?.data?.message || 'Token not found or not ready for delivery');
+        }
     },
 
     async confirmDelivery(tokenId, qrHash) {

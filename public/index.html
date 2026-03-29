@@ -213,6 +213,13 @@
                         <label data-i18n="token_count">Number of Tokens</label>
                         <input type="number" id="token-count" value="1" min="1" max="100">
                     </div>
+                    <div class="checkbox-group" style="margin-bottom: 20px;">
+                        <label class="switch">
+                            <input type="checkbox" id="start-from-one">
+                            <span class="slider round"></span>
+                        </label>
+                        <span style="font-size: 0.9rem; margin-left:10px;">Start Serial Number from 1</span>
+                    </div>
                     <div style="display: flex; gap: 10px;">
                         <button class="btn-primary" onclick="app.generateTokens()" data-i18n="gen_print">Generate & Print</button>
                         <button class="btn-danger" onclick="app.deleteUnusedTokens()" style="background:var(--danger)" data-i18n="unfilled_tokens">Delete Unused Tokens</button>
@@ -324,6 +331,14 @@
                     <div class="scanner-laser"></div>
                 </div>
                 <div class="scanner-hint" data-i18n="scan_del_hint">Scan Token to Mark as Delivered</div>
+                
+                <div class="manual-entry-box mg-t-20" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                    <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px; text-align: center;">Damaged QR? Enter Token ID Manually</p>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="manual-token-id" placeholder="Enter Token ID (9 chars)" style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
+                        <button class="btn-primary" onclick="app.handleManualDelivery()" style="padding: 10px 20px;">Verify</button>
+                    </div>
+                </div>
             </div>
             
             <div id="delivery-action-card" class="glass-card hidden">

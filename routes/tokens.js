@@ -144,6 +144,19 @@ router.get('/scan/:data', protect, async (req, res) => {
   }
 });
 
+// @route   GET /api/tokens/scan-manual/:id
+// @desc    Get token details by ID manually
+// @access  Delivery, Admin, Staff
+router.get('/scan-manual/:tokenId', protect, async (req, res) => {
+  try {
+     const token = await Token.findOne({ tokenId: req.params.tokenId });
+     if (!token) return res.status(404).json({ success: false, message: 'Token not found' });
+     res.status(200).json({ success: true, token });
+  } catch(err) {
+     res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
+
 // @route   DELETE /api/tokens/unused
 // @desc    Delete all unused (GENERATED) tokens
 // @access  Staff, Admin
