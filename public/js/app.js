@@ -727,7 +727,7 @@ const app = {
 
     async handleDeliveryScan(decodedText) {
         try {
-            const res = await axios.get(`${API_URL}/delivery/scan/${btoa(decodedText)}`);
+            const res = await axios.get(`${API_URL}/tokens/scan/${btoa(decodedText)}`);
             if (res.data.success) {
                 this.stopScanner();
                 const t = res.data.token;
@@ -874,17 +874,28 @@ const app = {
             res.data.tokens.forEach(t => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${new Date(t.createdAt).toLocaleDateString()}</td>
-                    <td>${t.consumerName}</td>
-                    <td>${t.consumerNo}</td>
-                    <td>${t.contactNo}</td>
-                    <td>${t.dacNumber}</td>
-                    <td><span style="color:${t.status === 'DELIVERED' ? 'var(--primary)' : 'var(--warning)'}">${t.status}</span></td>
-                    <td>${t.expectedDeliveryDate ? new Date(t.expectedDeliveryDate).toLocaleDateString() : 'N/A'}</td>
+                    <td data-label="Date Filled">${t.filledAt ? new Date(t.filledAt).toLocaleDateString() : 'N/A'}</td>
+                    <td data-label="Consumer">${t.consumerName}</td>
+                    <td data-label="ID">${t.consumerNo}</td>
+                    <td data-label="Contact">${t.contactNo}</td>
+                    <td data-label="DAC">${t.dacNumber}</td>
+                    <td data-label="Status"><span style="color:${t.status === 'DELIVERED' ? 'var(--primary)' : 'var(--warning)'}">${t.status}</span></td>
+                    <td data-label="Expected">${t.expectedDeliveryDate ? new Date(t.expectedDeliveryDate).toLocaleDateString() : 'N/A'}</td>
                 `;
                 tbody.appendChild(tr);
             });
         } catch(err) { console.error(err); }
+    },
+
+    searchRegister(query) {
+        const tbody = document.getElementById('register-tbody');
+        const rows = tbody.querySelectorAll('tr');
+        query = query.toLowerCase();
+        
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
     },
 
     exportRegister() {

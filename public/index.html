@@ -270,6 +270,7 @@
             <div class="dashboard-header">
                 <h2 data-i18n="reg">Customer Register</h2>
                 <div class="register-controls">
+                    <input type="text" id="register-search" placeholder="Search by Name or ID..." oninput="app.searchRegister(this.value)" style="padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: #fff; width: 250px;">
                     <select id="register-view-type" onchange="app.filterRegister(this.value)" style="padding: 10px; border-radius: 8px; border: none; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2);">
                         <option value="all" data-i18n="all_rec">All Records</option>
                         <option value="day" data-i18n="day_wise">Day-wise</option>

@@ -199,11 +199,11 @@ router.get('/register', protect, async (req, res) => {
             if (viewType === 'due') {
                 query.expectedDeliveryDate = { $gte: start, $lte: end };
             } else {
-                query.createdAt = { $gte: start, $lte: end };
+                query.filledAt = { $gte: start, $lte: end };
             }
         }
 
-        const tokens = await Token.find(query).sort({ createdAt: -1 });
+        const tokens = await Token.find(query).sort({ filledAt: -1 });
         res.status(200).json({ success: true, tokens });
     } catch(err) {
         res.status(500).json({ success: false, message: 'Failed to fetch register' });
@@ -223,11 +223,11 @@ router.get('/export-register', protect, async (req, res) => {
             if (viewType === 'due') {
                 query.expectedDeliveryDate = { $gte: start, $lte: end };
             } else {
-                query.createdAt = { $gte: start, $lte: end };
+                query.filledAt = { $gte: start, $lte: end };
             }
         }
 
-        const tokens = await Token.find(query).sort({ createdAt: -1 });
+        const tokens = await Token.find(query).sort({ filledAt: -1 });
 
         const workbook = new ExcelJS.Workbook();
         const sheet = workbook.addWorksheet('Customer Register');
@@ -239,7 +239,7 @@ router.get('/export-register', protect, async (req, res) => {
             { header: 'Contact No', key: 'contactNo', width: 15 },
             { header: 'Consumer No', key: 'consumerNo', width: 15 },
             { header: 'DAC Number', key: 'dacNumber', width: 15 },
-            { header: 'Date Filled', key: 'createdAt', width: 20 },
+            { header: 'Date Filled', key: 'filledAt', width: 20 },
             { header: 'Expected Delivery', key: 'expectedDeliveryDate', width: 20 },
             { header: 'Status', key: 'status', width: 15 }
         ];
@@ -252,7 +252,7 @@ router.get('/export-register', protect, async (req, res) => {
                 contactNo: t.contactNo,
                 consumerNo: t.consumerNo,
                 dacNumber: t.dacNumber,
-                createdAt: t.createdAt.toLocaleString(),
+                filledAt: t.filledAt ? t.filledAt.toLocaleString() : 'N/A',
                 expectedDeliveryDate: t.expectedDeliveryDate ? new Date(t.expectedDeliveryDate).toLocaleDateString() : 'N/A',
                 status: t.status
             });
