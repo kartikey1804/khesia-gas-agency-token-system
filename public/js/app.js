@@ -237,6 +237,8 @@ const app = {
                 document.getElementById('admin-verify-result').innerHTML = '<p style="color:var(--danger)">Invalid or not found.</p>';
             }
         });
+    },
+
     async deleteUnusedTokens() {
         if(!confirm('Are you sure you want to delete all UNUSED tokens? (Tokens printed but not yet filled with data)')) return;
         try {
