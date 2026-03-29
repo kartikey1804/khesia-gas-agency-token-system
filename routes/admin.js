@@ -46,7 +46,7 @@ router.get('/stats', async (req, res) => {
         const startOfDay = new Date();
         startOfDay.setHours(0,0,0,0);
         const issuedToday = await Token.countDocuments({ 
-            createdAt: { $gte: startOfDay }, 
+            filledAt: { $gte: startOfDay }, 
             status: { $in: activeStatuses } 
         });
         const deliveredToday = await Token.countDocuments({ status: 'DELIVERED', deliveryTimestamp: { $gte: startOfDay } });

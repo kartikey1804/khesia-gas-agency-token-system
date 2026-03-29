@@ -11,6 +11,7 @@ const tokenSchema = new mongoose.Schema({
   expectedDeliveryDate: { type: Date },
   nextDueDays: { type: Number, enum: [25, 35, 45] },
   status: { type: String, enum: ['GENERATED', 'PENDING', 'DELIVERED', 'PENDING_APPROVAL', 'UPDATE_PENDING'], default: 'GENERATED' },
+  filledAt: { type: Date },
   deliveryTimestamp: { type: Date },
   deliveryBoyName: { type: String },
   adminApproved: { type: Boolean, default: false },

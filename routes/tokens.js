@@ -56,7 +56,7 @@ router.get('/stats', protect, authorize('Admin', 'Staff'), async (req, res) => {
         const startOfDay = new Date();
         startOfDay.setHours(0,0,0,0);
         const issuedToday = await Token.countDocuments({ 
-            createdAt: { $gte: startOfDay }, 
+            filledAt: { $gte: startOfDay }, 
             status: { $in: activeStatuses } 
         });
         const pending = await Token.countDocuments({ status: 'PENDING' });
@@ -104,6 +104,7 @@ router.post('/fill', protect, authorize('Admin', 'Staff'), async (req, res) => {
     token.nextDueDays = nextDueDays;
     token.status = status;
     token.adminApproved = adminApproved;
+    token.filledAt = new Date();
 
     await token.save();
 

@@ -4,6 +4,8 @@ const app = {
     user: null,
     scanner: null,
     startFromOne: false,
+    syncInterval: null,
+    currentView: null,
     i18n: {
         current: localStorage.getItem('lang') || 'en',
         en: {
@@ -161,6 +163,7 @@ const app = {
     showMainLayout() {
         document.getElementById('navbar').classList.remove('hidden');
         this.renderSidebar();
+        this.startAutoSync();
         
         if (this.user.role === 'Admin') {
             this.showView('admin-view');
@@ -177,6 +180,17 @@ const app = {
             this.loadDeliveryStats();
             this.initDeliveryScanner();
         }
+    },
+
+    startAutoSync() {
+        if (this.syncInterval) clearInterval(this.syncInterval);
+        this.syncInterval = setInterval(() => {
+            if (this.user) {
+                if (this.currentView === 'admin-view') this.loadAdminStats();
+                if (this.currentView === 'staff-view') this.loadStaffStats();
+                if (this.currentView === 'delivery-view') this.loadDeliveryStats();
+            }
+        }, 5000);
     },
 
     askSerialPreference() {
@@ -229,9 +243,12 @@ const app = {
     },
 
     showView(viewId) {
+        this.currentView = viewId;
         document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-        document.getElementById(viewId).classList.add('active');
+        const view = document.getElementById(viewId);
+        if (view) view.classList.add('active');
         this.stopScanner();
+        this.renderSidebar(); // Keep user info updated
     },
 
     // --- UTILS: SCANNER (low-level Html5Qrcode) ---
@@ -564,18 +581,23 @@ const app = {
     },
 
     switchStaffMode(mode) {
-        document.querySelectorAll('#staff-view .subview').forEach(s => s.classList.remove('active'));
-        document.getElementById(`staff-${mode}-subview`).classList.add('active');
         this.stopScanner();
+        
+        if (mode === 'deliver') {
+            this.showView('delivery-view');
+            this.loadDeliveryStats();
+            this.initDeliveryScanner();
+            return;
+        }
+
+        document.querySelectorAll('#staff-view .subview').forEach(s => s.classList.remove('active'));
+        const subview = document.getElementById(`staff-${mode}-subview`);
+        if (subview) subview.classList.add('active');
 
         if (mode === 'scan') {
             this.startScanner('staff-qr-reader', (decodedText) => {
                 this.handleStaffScan(decodedText);
             });
-        } else if (mode === 'deliver') {
-            this.showView('delivery-view');
-            this.loadDeliveryStats();
-            this.initDeliveryScanner();
         }
     },
 
@@ -715,21 +737,21 @@ const app = {
                 document.getElementById('del-contact-no').innerText = t.contactNo;
                 document.getElementById('del-expected-date').innerText = new Date(t.expectedDeliveryDate).toLocaleDateString();
                 document.getElementById('del-status').innerText = t.status;
-                document.getElementById('btn-confirm-delivery').onclick = () => this.confirmDelivery(t._id);
+                document.getElementById('btn-confirm-delivery').onclick = () => this.confirmDelivery(t.tokenId, t.qrHash);
             }
         } catch (err) { alert(err.response?.data?.message || 'Invalid or expired token'); }
     },
 
-    async confirmDelivery(id) {
+    async confirmDelivery(tokenId, qrHash) {
         try {
-            const res = await axios.put(`${API_URL}/delivery/tokens/${id}/deliver`);
+            const res = await axios.put(`${API_URL}/delivery/deliver`, { tokenId, qrHash });
             if (res.data.success) {
                 this.showSuccess('Token Delivered Successfully!', () => {
                     this.loadDeliveryStats();
                     this.initDeliveryScanner();
                 });
             }
-        } catch (err) { alert('Delivery confirmation failed'); }
+        } catch (err) { alert(err.response?.data?.message || 'Delivery confirmation failed'); }
     },
 
     resetDeliveryScan() { this.initDeliveryScanner(); },
