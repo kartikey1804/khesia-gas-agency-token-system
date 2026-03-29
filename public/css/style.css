@@ -551,16 +551,27 @@ button {
 @media print {
     @page { 
         size: A4 portrait; 
-        margin: 0.5cm; 
+        margin: 0; 
     }
     
-    body * { visibility: hidden; }
-    #print-area, #print-area * { visibility: visible; }
-    #print-area {
-        position: absolute;
-        left: 0;
-        top: 0;
+    html, body {
+        margin: 0;
+        padding: 0;
         width: 21cm;
+        height: 29.7cm;
+    }
+
+    /* Hide everything except the print area */
+    body > *:not(#print-area) {
+        display: none !important;
+    }
+
+    #print-area {
+        display: block !important;
+        position: static !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 21cm !important;
         background: white !important;
     }
 

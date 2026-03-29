@@ -659,18 +659,18 @@ const app = {
                 card.className = 'token-print-card';
                 card.innerHTML = `
                     <div class="token-print-header">
-                        <h2>QR TOKEN: #${t.serialNo}</h2>
+                        <h2>#${t.serialNo}</h2>
                     </div>
                     <div class="token-print-body">
                         <div class="token-print-info">
-                            <h3>TOKEN ID</h3>
-                            <p>${t.tokenId}</p>
-                            <span style="font-size: 9pt;">Scan to Register / Confirm Delivery</span>
+                            <h3 style="font-size: 14pt; margin-bottom: 5px;">TOKEN ID</h3>
+                            <p style="font-size: 16pt; margin: 0;">${t.tokenId}</p>
+                            <span style="font-size: 8pt; display: block; margin-top: 10px;">Scan to Register / Confirm Delivery</span>
                         </div>
                         <img src="${t.qrImage}" class="token-print-qr">
                     </div>
                     <div class="token-print-footer">
-                        <div class="stamp-box">Stamp</div>
+                        <div class="stamp-box">STAMP</div>
                         <div class="signature-box">Signature</div>
                     </div>
                 `;
